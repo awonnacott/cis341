@@ -1,4 +1,6 @@
 open Ll
+open Llinterp (* You can use e.g. interp_bop and interp_cnd *)
+
 open Datastructures
 
 (* The lattice of symbolic constants ---------------------------------------- *)

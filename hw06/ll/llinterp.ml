@@ -1,3 +1,4 @@
+;;
 (* Author: Steve Zdancewic *)
 
 open Ll
@@ -281,7 +282,7 @@ let gep_ptr (nt:tid -> ty) (ot:ty) (p:ptr) (idxs':idx list) : sval =
 
 
 (* LLVMlite reference interpreter *)
-let interp_prog {tdecls; gdecls; fdecls} (args:string list) : sval =
+let interp_prog {tdecls; gdecls; fdecls; edecls=_} (args:string list) : sval =
 
   let globals = List.map (fun (g,gd) -> g,mval_of_gdecl gd) gdecls in
 
@@ -441,7 +442,7 @@ let interp_prog {tdecls; gdecls; fdecls} (args:string list) : sval =
     if List.mem fn runtime_fns
     then runtime_call ty fn args c
     else
-    let {f_param; f_cfg} = try List.assoc fn fdecls
+    let {f_param; f_cfg; f_ty=_} = try List.assoc fn fdecls
                        with Not_found -> failwith @@ "interp_call: undefined function " ^ fn
     in
     if List.(length f_param <> length args) then
