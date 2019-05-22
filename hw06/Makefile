@@ -1,31 +1,24 @@
 INCLUDES= util,x86,grading,ll
-LIBS = unix,str,nums
+LIBS = unix,str
+PKGS = num
 SUBMIT := solver.ml alias.ml backend.ml dce.ml constprop.ml
 
-HWNAME := hw06
-TIMESTAMP := $(shell /bin/date "+%Y-%m-%d-%H:%M:%S")
-ZIPNAME := $(HWNAME)-submit($(TIMESTAMP)).zip
-
+.PHONY: all test clean format
 
 all: main.native
 
-.PHONY: test
-test: main.native
+test: all
 	./main.native --test
 
-.PHONY: main.native
-main.native: 
-	ocamlbuild -Is $(INCLUDES) -libs $(LIBS) main.native -use-menhir -yaccflag --explain
+main.native:
+	ocamlbuild -cflags -w,+a-4-40-42 -Is $(INCLUDES) -libs $(LIBS) -pkg $(PKGS) main.native -use-menhir -yaccflag --explain
 
-.PHONY: printanalysis.native
-printanalysis.native: 
-	ocamlbuild -Is $(INCLUDES) -libs $(LIBS) printanalysis.native -use-menhir -yaccflag --explain
+printanalysis.native:
+	ocamlbuild -cflags -w,+a-4-40-42 -Is $(INCLUDES) -libs $(LIBS) -pkg $(PKGS) printanalysis.native -use-menhir -yaccflag --explain
 
-
-zip: $(SUBMIT)
-	zip '$(ZIPNAME)' $(SUBMIT)
-
-.PHONY: clean
 clean:
 	ocamlbuild -clean
 	rm -rf output a.out
+
+format: solver.ml alias.ml dce.ml constprop.ml backend.ml
+	ocamlformat -i --ocp-indent-compat -m 100 solver.ml alias.ml dce.ml constprop.ml backend.ml

@@ -8,7 +8,6 @@
   This is an _individual_ project -- please complete all of the work yourself!
 *)
 
-
 (* GOAL: get up to speed with OCaml; write a simple arithmetic
    interpreter
 
@@ -42,9 +41,7 @@
   providedtests.ml -- tests that you write to help with debugging and for
                       a grade (as requested below)
   main.ml          -- the main executable for this project
-*) 
-
-
+*)
 
 (******************************************************************************)
 (*                                                                            *)
@@ -65,7 +62,6 @@
   For more details, see IOC Chapter 2, pay particular attention to 2.4 about
   typechecking.
 *)
- 
 
 (* 
   OCaml is an expression-oriented, functional language.  This mean you typically
@@ -75,6 +71,7 @@
 *)
 
 let an_int : int = 3
+
 let another_int : int = 3 * 14
 
 (* 
@@ -85,11 +82,10 @@ let another_int : int = 3 * 14
   generates when you make a mistake.
  
   For example, it is an error to add a float and an int: 
-*) 
+*)
 (* Uncomment to get a type error:
    let an_error : int = 3 + 1.0
 *)
-
 
 (*
   'let' expressions can be nested.  The scope of a let-bound variable is 
@@ -98,40 +94,38 @@ let another_int : int = 3 * 14
 *)
 
 (* bind z to the value 39 *)
-let z : int = 
+let z : int =
   let x = 3 in
-    let y = x + x in  (* x is in scope here *)
-      y * y + x       (* x and y are both in scope here *)
-      
+  let y = x + x in
+  (* x is in scope here *)
+  (y * y) + x
+
+(* x and y are both in scope here *)
+
 (* 
   Scoping is sometimes easier to see by writing (optional) 'begin'-'end' 
   delimiters.  This is equivalent to the binding for z above.  
 *)
 (* bind z to the value 39 *)
 let z : int =
-  let x = 3 in begin
-    let y = x + x in begin
-	y * y + x
-    end
-  end
+  let x = 3 in
+  let y = x + x in
+  (y * y) + x
 
 (* 
   Here and elsewhere 'begin'-'end' are treated exactly the same as parentheses: 
 *)
 (* bind z to the value 39 *)
 let z : int =
-  let x = 3 in (
-    let y = x + x in (
-      y * y + x
-    )
-  )
+  let x = 3 in
+  let y = x + x in
+  (y * y) + x
 
 (*
   Once bound by a 'let', binding between a variable (like 'z' above) and its
   value (like 39) never changes.  Variables bindings can be shadowed, though.
   each subsequent definition of 'z' above 'shadows' the previous one.
 *)
-
 
 (* 
   The most important type of values in OCaml is the function type.
@@ -146,7 +140,7 @@ let z : int =
 *)
 
 (* bind the variable 'double' of type 'int -> int' to a function: *)
-let double : int -> int = fun  (x:int) -> x + x
+let double : int -> int = fun (x : int) -> x + x
 
 (*
   Functions are called or 'applied' by juxtaposition -- the space ' ' 
@@ -154,9 +148,11 @@ let double : int -> int = fun  (x:int) -> x + x
   Unlike Java or C, no parentheses are needed, except for grouping and 
   precedence:
 *)
-let doubled_z    : int = double z                  (* call double on z  *)
-let quadrupled_z : int = double (double z)         (* parens needed for grouping *)
-let sextupled_z  : int = quadrupled_z + (double z)  
+let doubled_z : int = double z (* call double on z  *)
+
+let quadrupled_z : int = double (double z) (* parens needed for grouping *)
+
+let sextupled_z : int = quadrupled_z + double z
 
 (*
   Functions with more than one argument have types like:
@@ -165,19 +161,21 @@ let sextupled_z  : int = quadrupled_z + (double z)
   i.e. -> associates to the right, so 'int -> int -> int' is just 'int -> (int -> int)'
 *)
 
-let mult : int -> int -> int = 
-  fun (x:int) -> fun (y:int) -> x * y
-let squared_z : int = mult z z   (* multiply z times z *)
+let mult : int -> int -> int = fun (x : int) (y : int) -> x * y
+
+let squared_z : int = mult z z (* multiply z times z *)
 
 (*
   Because functions like 'mult' above return functions, they can be
   partially applied: 
 *)
-let mult_by_3 : int -> int = mult 3      (* partially apply mult to 3 *)
-let mult_by_4 : int -> int = mult 4      (* partially apply mult to 4 *)
-let meaning_of_life : int = mult_by_3 14 (* call the partially applied function *)
-let excellent_score : int = mult_by_4 25 (* compute 100 *)
+let mult_by_3 : int -> int = mult 3 (* partially apply mult to 3 *)
 
+let mult_by_4 : int -> int = mult 4 (* partially apply mult to 4 *)
+
+let meaning_of_life : int = mult_by_3 14 (* call the partially applied function *)
+
+let excellent_score : int = mult_by_4 25 (* compute 100 *)
 
 (* 
   The let-fun syntax above is a bit heavy, so OCaml provides syntactic sugar 
@@ -186,15 +184,15 @@ let excellent_score : int = mult_by_4 25 (* compute 100 *)
  
   For example, we can write double like this:  
 *)
-let double (x:int) : int = x + x      (* this definition shadows the earlier one *)
+let double (x : int) : int = x + x (* this definition shadows the earlier one *)
 
 (* and mult like this: *)
-let mult (x:int) (y:int) : int = x * y
+let mult (x : int) (y : int) : int = x * y
 
 (* We still call them in the same way as before: *)
-let quadrupled_z : int        = double (double z)  (* parens needed for grouping *)
-let mult_by_3    : int -> int = mult 3             (* partially apply mult to 3 *) 
+let quadrupled_z : int = double (double z) (* parens needed for grouping *)
 
+let mult_by_3 : int -> int = mult 3 (* partially apply mult to 3 *)
 
 (* 
   Note the use of type annotations
@@ -203,12 +201,11 @@ let mult_by_3    : int -> int = mult 3             (* partially apply mult to 3 
 *)
 
 (* Functions are first-class values, they can be passed to other functions: *)
-let twice (f:int -> int) (x:int) : int =
+let twice (f : int -> int) (x : int) : int =
   (* f is a function from ints to ints *)
   f (f x)
-  
-let quadrupled_z_again : int = twice double z  (* pass double to twice *)
 
+let quadrupled_z_again : int = twice double z (* pass double to twice *)
 
 (* OCaml's top-level-loop --------------------------------------------------- *)
 (*
@@ -266,7 +263,7 @@ let quadrupled_z_again : int = twice double z  (* pass double to twice *)
   Try it now -- load this "hellocaml.ml" file into the OCaml top level.
   If you succeed, you should see a long list of definitions that this file 
   makes.
-*) 
+*)
 
 (* Compiling ---------------------------------------------------------------- *)
 (* 
@@ -293,8 +290,7 @@ let quadrupled_z_again : int = twice double z  (* pass double to twice *)
  
   Hint: examining the test cases in gradedtests.ml can help you figure out 
   the specifications of the code you are supposed to implement.
-*) 
-
+*)
 
 (* PART 1 Problems ---------------------------------------------------------- *)
 (* 
@@ -312,13 +308,11 @@ let quadrupled_z_again : int = twice double z  (* pass double to twice *)
   The 'pieces' variable below is bound to the wrong value.  Bind it to one that
   makes the first case of part1_tests "Problem 1" succeed. See the 
   gradedtests.ml file.  
-*)   
+*)
 let pieces : int = -1
 
 (* Implement a function cube that takes an int value and produces its cube. *)
-let cube : int -> int = 
-fun _ -> failwith "cube unimplemented"   
-
+let cube : int -> int = fun _ -> failwith "cube unimplemented"
 
 (* Problem 1-2 *)
 (* 
@@ -330,9 +324,7 @@ fun _ -> failwith "cube unimplemented"
   (all numbers non-negative)
   and computes the total value of the coins in cents: 
 *)
-let cents_of : int -> int -> int -> int -> int = 
-  fun _ -> failwith "cents_of unimplemented"
-
+let cents_of : int -> int -> int -> int -> int = fun _ -> failwith "cents_of unimplemented"
 
 (* Problem 1-3 *)
 (* 
@@ -341,13 +333,13 @@ let cents_of : int -> int -> int -> int -> int =
   will need to remove the function body starting with failwith and replace it 
   with something else.
 *)
-let prob3_ans : int  = 42
+let prob3_ans : int = 42
 
 (*
   Edit the function argument of the "Student-Provided Problem 3" test in 
   providedtests.ml so that "case2" passes, given the definition below:
 *)
-let prob3_case2 (x:int) : int  = prob3_ans - x
+let prob3_case2 (x : int) : int = prob3_ans - x
 
 (*
   Replace 0 with a literal integer argument in the "Student-Provided Problem 3"
@@ -368,7 +360,6 @@ let prob3_case3 : int =
 (*                                                                            *)
 (******************************************************************************)
 
-
 (* 
   NOTE: See RWO Ch 1 TUPLES, LISTS, OPTIONS, AND PATTERN MATCHING
 
@@ -381,11 +372,10 @@ let prob3_case3 : int =
 let triple : int * bool * string = (3, true, "some string")
 
 (* NOTE: technically, the parentheses are _optional_, so we could have done: *)
-let triple : int * bool * string = 3, true, "some string"                                   
+let triple : int * bool * string = (3, true, "some string")
 
 (* Tuples can nest *)
-let pair_of_triples: (int * bool * string) * (int * bool * string) =
-  (triple, triple)   
+let pair_of_triples : (int * bool * string) * (int * bool * string) = (triple, triple)
 
 (* 
   IMPORTANT!!  Be sure to learn this!
@@ -421,7 +411,6 @@ let pair_of_triples: (int * bool * string) * (int * bool * string) =
  
 *)
 
-
 (*
   Tuples are "generic" or "polymorphic" -- you can create tuples of any 
   datatypes.
@@ -445,7 +434,6 @@ let pair_of_triples: (int * bool * string) * (int * bool * string) =
   and proof systems.
 *)
 
-
 (*
   TIP: In Eclipse you can get the type of an expression by hovering the
   mouse cursor over the program text.  This only works if the program
@@ -455,30 +443,22 @@ let pair_of_triples: (int * bool * string) * (int * bool * string) =
   type of a an expression at the cursor too: ^C ^T on Emacs
 *)
 
-
 (* Example pattern matching against tuples: *)
-let first_of_three (t:'a * 'b * 'c) : 'a =  (* t is a generic triple *)
-  begin match t with
-    | (x, _, _) -> x
-  end
-  
-let t1 : int = first_of_three triple    (* binds t1 to 3 *)  
-  
-let second_of_three (t:'a * 'b * 'c) : 'b =
-  begin match t with
-    | (_, x, _) -> x
-  end 
-  
-let t2 : bool = second_of_three triple  (* binds t2 to true *)
- 
+let first_of_three (t : 'a * 'b * 'c) : 'a =
+  (* t is a generic triple *)
+  match t with x, _, _ -> x
+
+let t1 : int = first_of_three triple (* binds t1 to 3 *)
+
+let second_of_three (t : 'a * 'b * 'c) : 'b = match t with _, x, _ -> x
+
+let t2 : bool = second_of_three triple (* binds t2 to true *)
 
 (* 
   This generic function takes an arbitrary input, x, and 
   returns a pair both of whose components are the given input:
 *)
-let pair_up (x:'a) : ('a * 'a) = (x, x)
-
-
+let pair_up (x : 'a) : 'a * 'a = (x, x)
 
 (* Part 2 Problems ---------------------------------------------------------- *)
 
@@ -490,7 +470,6 @@ let pair_up (x:'a) : ('a * 'a) = (x, x)
 *)
 let third_of_three _ = failwith "third_of_three unimplemented"
 
-
 (*
   Problem 2-2
  
@@ -500,11 +479,7 @@ let third_of_three _ = failwith "third_of_three unimplemented"
   for examples of its use.
 *)
 
-let compose_pair (p:(('b -> 'c) * ('a -> 'b))) : 'a -> 'c =
-failwith "compose_pair unimplemented"
-
-
-
+let compose_pair (p : ('b -> 'c) * ('a -> 'b)) : 'a -> 'c = failwith "compose_pair unimplemented"
 
 (******************************************************************************)
 (*                                                                            *)
@@ -525,17 +500,16 @@ failwith "compose_pair unimplemented"
   `::`  is pronounced "cons", as it constructs a list.
 *)
 
-let list1 : int list = 3::2::1::[]
+let list1 : int list = [3; 2; 1]
 
 (* Lists can also be written using the [v1;v2;v3] notation: *)
 
-let list1' = [3;2;1]     (* this is equivalent to list1 *)
+let list1' = [3; 2; 1] (* this is equivalent to list1 *)
 
 (* Lists are homogeneous -- they hold values of only one type: *)
 (* Uncomment to get a type error; recomment to compile:
 let bad_list = [1;"hello";true]
 *)
-
 
 (*
   As usual in OCaml, we use pattern matching to destruct lists.
@@ -544,15 +518,14 @@ let bad_list = [1;"hello";true]
   or is non-empty.  The following function takes a list l and
   determines whether l is empty: 
 *)
-let is_empty (l:'a list) : bool =
-  begin match l with
-    | []    -> true         (* nil case -- return true *)
-    | h::tl -> false        (* non-nil case -- return false *)
-  end
-  
-let ans1: bool = is_empty []     (* evaluates to true *)
-let ans2: bool = is_empty list1  (* evaluates to false *)
+let is_empty (l : 'a list) : bool =
+  match l with [] -> true (* nil case -- return true *) | h :: tl -> false
 
+(* non-nil case -- return false *)
+
+let ans1 : bool = is_empty [] (* evaluates to true *)
+
+let ans2 : bool = is_empty list1 (* evaluates to false *)
 
 (*
   Lists are an example of a "disjoint union" data type -- they are either
@@ -565,16 +538,16 @@ let ans2: bool = is_empty list1  (* evaluates to false *)
   A user-defined generic type ('a mylist) can be defined within OCaml by:
 *)
 
-type 'a mylist =
-  | Nil                         (* my version of [] *)
-  | Cons of 'a * ('a mylist)    (* Cons(h,tl) is my version of h::tl *) 
+type 'a mylist = Nil (* my version of [] *) | Cons of 'a * 'a mylist
+
+(* Cons(h,tl) is my version of h::tl *)
 
 (* 
   We build a mylist by using its 'constructors' (specified in the branches)
   For example, compare mylist1 below to list1 defined by built-in lists
   above:
 *)
-let mylist1 : int mylist = Cons (3, Cons (2, Cons (1, Nil)))  
+let mylist1 : int mylist = Cons (3, Cons (2, Cons (1, Nil)))
 
 (* 
   Pattern matching against a user-defined datatype works the same as for
@@ -582,12 +555,7 @@ let mylist1 : int mylist = Cons (3, Cons (2, Cons (1, Nil)))
   the cases of the type definition.  For example, to write the is_empty
   function for mylist we do the following.  Compare it with is_empty:
 *)
-let is_mylist_empty (l:'a mylist) : bool =
-  begin match l with
-    | Nil          -> true
-    | Cons (h, tl) -> false
-  end
-
+let is_mylist_empty (l : 'a mylist) : bool = match l with Nil -> true | Cons (h, tl) -> false
 
 (* 
   IMPORTANT!! Be sure to learn this!
@@ -604,14 +572,13 @@ let is_mylist_empty (l:'a mylist) : bool =
   a recursive function that sums the elements of an integer list:
 *)
 
-let rec sum (l:int list) : int =  (* note the 'rec' keyword! *)
-  begin match l with
-    | []      -> 0
-    | (x::xs) -> x + (sum xs)   (* note the recursive call to sum *)
-  end
-  
-let sum_ans1 : int = sum [1;2;3]     (* evaluates to 6 *)
+let rec sum (l : int list) : int =
+  (* note the 'rec' keyword! *)
+  match l with [] -> 0 | x :: xs -> x + sum xs
 
+(* note the recursive call to sum *)
+
+let sum_ans1 : int = sum [1; 2; 3] (* evaluates to 6 *)
 
 (*
   Here is a function that takes a list and determines whether it is 
@@ -621,17 +588,12 @@ let sum_ans1 : int = sum [1;2;3]     (* evaluates to 6 *)
   Note that it uses nested pattern matching to name the
   first two elements of the list in the third case of the match:
 *)
-let rec is_sorted (l:'a list) : bool =
-  begin match l with
-    | []    -> true    
-    | _::[] -> true    
-    | h1::h2::tl ->    
-        h1 < h2 && (is_sorted (h2::tl))  
-  end 
+let rec is_sorted (l : 'a list) : bool =
+  match l with [] -> true | [_] -> true | h1 :: h2 :: tl -> h1 < h2 && is_sorted (h2 :: tl)
 
-let is_sorted_ans1 : bool = is_sorted [1;2;3]    (* true *)
-let is_sorted_ans2 : bool = is_sorted [1;3;2]    (* false *)
+let is_sorted_ans1 : bool = is_sorted [1; 2; 3] (* true *)
 
+let is_sorted_ans2 : bool = is_sorted [1; 3; 2] (* false *)
 
 (* 
   The List library
@@ -641,42 +603,32 @@ let is_sorted_ans2 : bool = is_sorted [1;3;2]    (* false *)
   
   Here is map, one of the most useful:
 *)
-let rec map (f:'a -> 'b) (l:'a list) : 'b list =
-  begin match l with
-    | [] -> []
-    | (h::tl) -> (f h)::(map f tl)
-  end
-  
-let map_ans1 : int list  = map double [1;2;3]    (* evaluates to [2;4;6]  *)     
-let map_ans2 : (int * int) list = 
-  map pair_up [1;2;3]    (* evaluates to [(1,1);(2,2);(3,3)] *) 
+let rec map (f : 'a -> 'b) (l : 'a list) : 'b list =
+  match l with [] -> [] | h :: tl -> f h :: map f tl
+
+let map_ans1 : int list = map double [1; 2; 3] (* evaluates to [2;4;6]  *)
+
+let map_ans2 : (int * int) list = map pair_up [1; 2; 3]
+
+(* evaluates to [(1,1);(2,2);(3,3)] *)
 
 (* 
   The mylist type is isomorphic to the built-in lists.  
   The recursive function below converts a mylist to a built-in list.  
 *)
 
-let rec mylist_to_list (l:'a mylist) : 'a list =
-  begin match l with
-    | Nil -> []
-    | Cons(h,tl) -> h :: (mylist_to_list tl)
-  end
-
-  
-    
+let rec mylist_to_list (l : 'a mylist) : 'a list =
+  match l with Nil -> [] | Cons (h, tl) -> h :: mylist_to_list tl
 
 (* Part 3 Problems ---------------------------------------------------------- *)
 
-  
 (*
   Problem 3-1
  
   Implement list_to_mylist with the type signature below; this is 
   the inverse of the mylist_to_list function given above.
 *)
-let rec list_to_mylist (l:'a list) : 'a mylist =
-failwith "list_to_mylist unimplemented"
-
+let rec list_to_mylist (l : 'a list) : 'a mylist = failwith "list_to_mylist unimplemented"
 
 (*
   Problem 3-2
@@ -690,18 +642,16 @@ failwith "list_to_mylist unimplemented"
  
   Note that OCaml provides the infix fuction @ as an alternate way of writing
   append.  So (List.append [1;2] [3]) is the same as  ([1;2] @ [3]).
-*) 
-let rec append (l1:'a list) (l2:'a list) : 'a list =
-failwith "append unimplemented"
-  
+*)
+let rec append (l1 : 'a list) (l2 : 'a list) : 'a list = failwith "append unimplemented"
+
 (*
   Problem 3-3
   
   Implement the library function rev, which reverses a list. In this solution,
   you might want to call append.  Do not use the library function.
 *)
-let rec rev (l:'a list) : 'a list =
-failwith "rev unimplemented"
+let rec rev (l : 'a list) : 'a list = failwith "rev unimplemented"
 
 (*
   Problem 3-4
@@ -712,9 +662,7 @@ failwith "rev unimplemented"
   itself should not be recursive. Tail recursion is important to efficiency --
   OCaml will compile a tail recursive function to a simple loop.
 *)
-let rev_t (l: 'a list) : 'a list =
-failwith "rev_t unimplemented"
-
+let rev_t (l : 'a list) : 'a list = failwith "rev_t unimplemented"
 
 (* Problem 3-5
 
@@ -728,10 +676,8 @@ failwith "rev_t unimplemented"
    OCaml is expression-oriented; "if t then e1 else e2" evaluates to
    either the value computed by e1 or the value computed by e2
    depending on whether t evaluates to true or false.  *)
-let rec insert (x:'a) (l:'a list) : 'a list =
-failwith "insert unimplemented"
-  
-  
+let rec insert (x : 'a) (l : 'a list) : 'a list = failwith "insert unimplemented"
+
 (*
   Problem 3-6
 
@@ -739,13 +685,8 @@ failwith "insert unimplemented"
   sorted list containing all of the elements from both of the two input lists.  
   Hint: you might want to use the insert function that you just defined.
 *)
-let rec union (l1:'a list) (l2:'a list) : 'a list =
- failwith "union unimplemented"
+let rec union (l1 : 'a list) (l2 : 'a list) : 'a list = failwith "union unimplemented"
 
-
-            
-                              
-                                                  
 (******************************************************************************)
 (*                                                                            *)
 (* PART 3: Expression Trees and Interpreters                                  *)
@@ -786,32 +727,33 @@ let rec union (l1:'a list) (l2:'a list) : 'a list =
   library -- you can use similar notation for List.map, etc.
  
   64-bit literal constants are written with the `L` suffix: 0L, 1L, 2L, etc.
-*) 
+*)
 
 (* An object language: a simple datatype of 64-bit integer expressions *)
 type exp =
-  | Var of string         (* string representing an object-language variable *)
-  | Const of int64        (* a constant int64 value -- use the 'L' suffix *)
-  | Add of exp * exp      (* sum of two expressions *)
-  | Mult of exp * exp     (* product of two expressions *)
-  | Neg of exp            (* negation of an expression *)
+  | Var of string (* string representing an object-language variable *)
+  | Const of int64 (* a constant int64 value -- use the 'L' suffix *)
+  | Add of exp * exp (* sum of two expressions *)
+  | Mult of exp * exp (* product of two expressions *)
+  | Neg of exp
 
+(* negation of an expression *)
 
 (* 
   An object-language arithmetic expression whose concrete (ASCII) syntax is
   "2 * 3" could be represented like this: 
 *)
-let e1 : exp = Mult(Const 2L, Const 3L)   (* "2 * 3" *)
+let e1 : exp = Mult (Const 2L, Const 3L) (* "2 * 3" *)
 
 (*
   If the object-level expression contains variables, we represent them as
   strings, like this:
 *)
-let e2 : exp = Add(Var "x", Const 1L)    (* "x + 1" *)
+let e2 : exp = Add (Var "x", Const 1L) (* "x + 1" *)
 
 (* Here is a more complex expression that involves multiple variables: *)
 
-let e3 : exp = Mult(Var "y", Mult(e2, Neg e2))     (* "y * ((x+1) * -(x+1))" *)
+let e3 : exp = Mult (Var "y", Mult (e2, Neg e2)) (* "y * ((x+1) * -(x+1))" *)
 
 (*
    Problem 4-1
@@ -829,9 +771,7 @@ let e3 : exp = Mult(Var "y", Mult(e2, Neg e2))     (* "y * ((x+1) * -(x+1))" *)
   Hint: you need to pattern match on the exp e.
   Hint: you probably want to use the 'union' function you wrote for Problem 3-5.
 *)
-let rec vars_of (e:exp) : string list =
-failwith "vars_of unimplemented"
-
+let rec vars_of (e : exp) : string list = failwith "vars_of unimplemented"
 
 (*
   How should we _interpret_ (i.e. give meaning to) an expression?
@@ -851,12 +791,13 @@ failwith "vars_of unimplemented"
   One simple (but not particularly efficient) way to represent a context is as
   an "association list" that is just a list of (string * int64) pairs: 
 *)
-                    
+
 type ctxt = (string * int64) list
 
 (* Here are some example evalution contexts: *)
-let ctxt1 : ctxt = [("x", 3L)]             (* maps "x" to 3L *)
-let ctxt2 : ctxt = [("x", 2L); ("y", 7L)]  (* maps "x" to 2L, "y" to 7L *)
+let ctxt1 : ctxt = [("x", 3L)] (* maps "x" to 3L *)
+
+let ctxt2 : ctxt = [("x", 2L); ("y", 7L)] (* maps "x" to 2L, "y" to 7L *)
 
 (*
   When interpreting an expression, we need to look up the value
@@ -891,9 +832,7 @@ let ctxt2 : ctxt = [("x", 2L); ("y", 7L)]  (* maps "x" to 2L, "y" to 7L *)
   the int64 value associated with a given string in the ctxt c.  If there is no
   such value, it should raise the Not_found exception.
 *)
-let rec lookup (x:string) (c:ctxt) : int64 =
-failwith "unimplemented"
-
+let rec lookup (x : string) (c : ctxt) : int64 = failwith "unimplemented"
 
 (* 
   Problem 4-3
@@ -916,11 +855,9 @@ failwith "unimplemented"
  
   You should test your interpeter on more examples than just those provided in 
   gradedtests.ml.
-*)        
+*)
 
-let rec interpret (c:ctxt) (e:exp) : int64 =
-  failwith "unimplemented"
-
+let rec interpret (c : ctxt) (e : exp) : int64 = failwith "unimplemented"
 
 (*
   Problem 4-4
@@ -962,11 +899,9 @@ let rec interpret (c:ctxt) (e:exp) : int64 =
           -- adding 0, multiplying by 0 or 1, constants, etc.
 
   Hint: what simple optimizations can you do with Neg?
-*)   
+*)
 
-let rec optimize (e:exp) : exp =
-failwith "optimize unimplemented"  
-  
+let rec optimize (e : exp) : exp = failwith "optimize unimplemented"
 
 (******************************************************************************)
 (*                                                                            *)
@@ -1003,11 +938,13 @@ failwith "optimize unimplemented"
   push their results onto the stack.
 *)
 type insn =
-  | IPushC of int64   (* push an int64 constant onto the stack *)
-  | IPushV of string  (* push (lookup string ctxt)  onto the stack *)
-  | IMul              (* multiply the top two values on the stack *)
-  | IAdd              (* add the top two values on the stack *)
-  | INeg              (* negate the top value on the stack *)
+  | IPushC of int64 (* push an int64 constant onto the stack *)
+  | IPushV of string (* push (lookup string ctxt)  onto the stack *)
+  | IMul (* multiply the top two values on the stack *)
+  | IAdd (* add the top two values on the stack *)
+  | INeg
+
+(* negate the top value on the stack *)
 
 (* A stack program is just a list of instructions. *)
 type program = insn list
@@ -1027,32 +964,38 @@ type stack = int64 list
   exception if the stack doesn't have enough entries.  As with the 'exp'
   language interpreter, we use a context to lookup the value of variables.  
 *)
- 
-let step (c:ctxt) (s:stack) (i:insn) : stack =
-  begin match (i, s) with
-    | (IPushC n, _) -> n::s             (* push n onto the stack *)
-    | (IPushV x, _) -> (lookup x c)::s  (* lookup x, push it *)
-    | (IMul, v1::v2::s) -> (Int64.mul v1 v2)::s
-    | (IAdd, v1::v2::s) -> (Int64.add v1 v2)::s
-    | (INeg, v1::s)     -> (Int64.neg v1)::s
-    | _ -> failwith "Stack had too few values"
-  end
+
+let step (c : ctxt) (s : stack) (i : insn) : stack =
+  match (i, s) with
+  | IPushC n, _ ->
+      n :: s (* push n onto the stack *)
+  | IPushV x, _ ->
+      lookup x c :: s (* lookup x, push it *)
+  | IMul, v1 :: v2 :: s ->
+      Int64.mul v1 v2 :: s
+  | IAdd, v1 :: v2 :: s ->
+      Int64.add v1 v2 :: s
+  | INeg, v1 :: s ->
+      Int64.neg v1 :: s
+  | _ ->
+      failwith "Stack had too few values"
 
 (* 
   To define how a program executes, we simply iterate over the
   instructions, threading the stack through.
 *)
-let rec execute (c:ctxt) (s:stack) (p:program) : stack =
-  begin match p with
-    | []      -> s  (* no more instructions to execute *)
-    | i::cont -> execute c (step c s i) cont 
-  end
- 
+let rec execute (c : ctxt) (s : stack) (p : program) : stack =
+  match p with
+  | [] ->
+      s (* no more instructions to execute *)
+  | i :: cont ->
+      execute c (step c s i) cont
+
 (* 
   If you want to be slick, you can write the above equivalently using
   List.fold_left (which is tail recrusive and hence iterative):
 *)
-let execute' (c:ctxt) = List.fold_left (step c)
+let execute' (c : ctxt) = List.fold_left (step c)
 
 (*
   Let us define 'answer' to mean the sole value of a stack containing only one
@@ -1060,17 +1003,13 @@ let execute' (c:ctxt) = List.fold_left (step c)
   wouldn't be any int64 value computed and if there is more than one value on
   the stack, that means that the program 'stopped' too early.
 *)
-let answer (s:stack) : int64 =
-  begin match s with
-    | [n] -> n
-    | _ -> failwith "no answer"
-  end
+let answer (s : stack) : int64 = match s with [n] -> n | _ -> failwith "no answer"
 
 (*
   Finally, we can 'run' a program in a given context by executing it starting
   from the empty stack and returning the answer that the program computes.
  *)
-let run (c:ctxt) (p:program) : int64 = answer (execute c [] p)
+let run (c : ctxt) (p : program) : int64 = answer (execute c [] p)
 
 (*
   As an example program in this stack language, consider the following program
@@ -1080,8 +1019,8 @@ let run (c:ctxt) (p:program) : int64 = answer (execute c [] p)
   the value 2 * 3. 
 *)
 let p1 = [IPushC 2L; IPushC 3L; IMul]
-let ans1 = run [] p1
 
+let ans1 = run [] p1
 
 (*
   Problem 5
@@ -1108,10 +1047,7 @@ let ans1 = run [] p1
 
    - You should test the correctness of your compiler on several examples.
 *)
-let rec compile (e:exp) : program =
-failwith "compile unimplemented"  
-
-
+let rec compile (e : exp) : program = failwith "compile unimplemented"
 
 (************)
 (* Epilogue *)
@@ -1127,5 +1063,4 @@ failwith "compile unimplemented"
   unit tests that we'll use for grading throughout this course. It makes
   extensive use of unions, lists, strings, ints, and a few List and Printf
   library functions, but otherwise it should be fairly readable to you already...
-*)  
-
+*)

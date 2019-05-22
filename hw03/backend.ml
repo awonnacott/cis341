@@ -11,19 +11,22 @@ open X86
    plan for implementing the compiler is provided on the project web page. 
 *)
 
-
 (* helpers ------------------------------------------------------------------ *)
 
 (* Map LL comparison operations to X86 condition codes *)
 let compile_cnd = function
-  | Ll.Eq  -> X86.Eq
-  | Ll.Ne  -> X86.Neq
-  | Ll.Slt -> X86.Lt
-  | Ll.Sle -> X86.Le
-  | Ll.Sgt -> X86.Gt
-  | Ll.Sge -> X86.Ge
-
-
+  | Ll.Eq ->
+      X86.Eq
+  | Ll.Ne ->
+      X86.Neq
+  | Ll.Slt ->
+      X86.Lt
+  | Ll.Sle ->
+      X86.Le
+  | Ll.Sgt ->
+      X86.Gt
+  | Ll.Sge ->
+      X86.Ge
 
 (* locals and layout -------------------------------------------------------- *)
 
@@ -55,13 +58,10 @@ type layout = (uid * X86.operand) list
 
 (* A context contains the global type declarations (needed for getelementptr
    calculations) and a stack layout. *)
-type ctxt = { tdecls : (tid * ty) list
-            ; layout : layout
-            }
+type ctxt = {tdecls: (tid * ty) list; layout: layout}
 
 (* useful for looking up items in tdecls or layouts *)
 let lookup m x = List.assoc x m
-
 
 (* compiling operands  ------------------------------------------------------ *)
 
@@ -90,10 +90,9 @@ let lookup m x = List.assoc x m
    the X86 instruction that moves an LLVM operand into a designated
    destination (usually a register).  
 *)
-let compile_operand ctxt dest : Ll.operand -> ins =
-  function _ -> failwith "compile_operand unimplemented"
-
-
+let compile_operand ctxt dest : Ll.operand -> ins = function
+  | _ ->
+      failwith "compile_operand unimplemented"
 
 (* compiling call  ---------------------------------------------------------- *)
 
@@ -114,9 +113,6 @@ let compile_operand ctxt dest : Ll.operand -> ins =
    [ NOTE: Don't forget to preserve caller-save registers (only if
    needed). ]
 *)
-
-
-
 
 (* compiling getelementptr (gep)  ------------------------------------------- *)
 
@@ -140,11 +136,7 @@ let compile_operand ctxt dest : Ll.operand -> ins =
    - Void, i8, and functions have undefined sizes according to LLVMlite.
      Your function should simply return 0 in those cases
 *)
-let rec size_ty tdecls t : int =
-failwith "size_ty not implemented"
-
-
-
+let rec size_ty tdecls t : int = failwith "size_ty not implemented"
 
 (* Generates code that computes a pointer value.  
 
@@ -171,10 +163,8 @@ failwith "size_ty not implemented"
       in (4), but relative to the type f the sub-element picked out
       by the path so far
 *)
-let compile_gep ctxt (op : Ll.ty * Ll.operand) (path: Ll.operand list) : ins list =
-failwith "compile_gep not implemented"
-
-
+let compile_gep ctxt (op : Ll.ty * Ll.operand) (path : Ll.operand list) : ins list =
+  failwith "compile_gep not implemented"
 
 (* compiling instructions  -------------------------------------------------- *)
 
@@ -199,10 +189,7 @@ failwith "compile_gep not implemented"
 
    - Bitcast: does nothing interesting at the assembly level
 *)
-let compile_insn ctxt (uid, i) : X86.ins list =
-      failwith "compile_insn not implemented"
-
-
+let compile_insn ctxt (uid, i) : X86.ins list = failwith "compile_insn not implemented"
 
 (* compiling terminators  --------------------------------------------------- *)
 
@@ -216,23 +203,16 @@ let compile_insn ctxt (uid, i) : X86.ins list =
 
    - Cbr branch should treat its operand as a boolean conditional
 *)
-let compile_terminator ctxt t =
-  failwith "compile_terminator not implemented"
-
+let compile_terminator ctxt t = failwith "compile_terminator not implemented"
 
 (* compiling blocks --------------------------------------------------------- *)
 
 (* We have left this helper function here for you to complete. *)
-let compile_block ctxt blk : ins list =
-  failwith "compile_block not implemented"
+let compile_block ctxt blk : ins list = failwith "compile_block not implemented"
 
-let compile_lbl_block lbl ctxt blk : elem =
-  Asm.text lbl (compile_block ctxt blk)
-
-
+let compile_lbl_block lbl ctxt blk : elem = Asm.text lbl (compile_block ctxt blk)
 
 (* compile_fdecl ------------------------------------------------------------ *)
-
 
 (* This helper function computes the location of the nth incoming
    function argument: either in a register or relative to %rbp,
@@ -241,9 +221,7 @@ let compile_lbl_block lbl ctxt blk : elem =
 
    [ NOTE: the first six arguments are numbered 0 .. 5 ]
 *)
-let arg_loc (n : int) : operand =
-failwith "arg_loc not implemented"
-
+let arg_loc (n : int) : operand = failwith "arg_loc not implemented"
 
 (* We suggest that you create a helper function that computes the 
    stack layout for a given function declaration.
@@ -254,8 +232,7 @@ failwith "arg_loc not implemented"
    - see the discusion about locals 
 
 *)
-let stack_layout args (block, lbled_blocks) : layout =
-failwith "stack_layout not implemented"
+let stack_layout args (block, lbled_blocks) : layout = failwith "stack_layout not implemented"
 
 (* The code for the entry-point of a function must do several things:
 
@@ -273,27 +250,28 @@ failwith "stack_layout not implemented"
    - the function entry code should allocate the stack storage needed
      to hold all of the local stack slots.
 *)
-let compile_fdecl tdecls name { f_ty; f_param; f_cfg } =
-failwith "compile_fdecl unimplemented"
-
-
+let compile_fdecl tdecls name {f_ty; f_param; f_cfg} = failwith "compile_fdecl unimplemented"
 
 (* compile_gdecl ------------------------------------------------------------ *)
 (* Compile a global value into an X86 global data declaration and map
    a global uid to its associated X86 label.
 *)
 let rec compile_ginit = function
-  | GNull     -> [Quad (Lit 0L)]
-  | GGid gid  -> [Quad (Lbl (Platform.mangle gid))]
-  | GInt c    -> [Quad (Lit c)]
-  | GString s -> [Asciz s]
-  | GArray gs | GStruct gs -> List.map compile_gdecl gs |> List.flatten
+  | GNull ->
+      [Quad (Lit 0L)]
+  | GGid gid ->
+      [Quad (Lbl (Platform.mangle gid))]
+  | GInt c ->
+      [Quad (Lit c)]
+  | GString s ->
+      [Asciz s]
+  | GArray gs | GStruct gs ->
+      List.map compile_gdecl gs |> List.flatten
 
 and compile_gdecl (_, g) = compile_ginit g
 
-
 (* compile_prog ------------------------------------------------------------- *)
 let compile_prog {tdecls; gdecls; fdecls} : X86.prog =
-  let g = fun (lbl, gdecl) -> Asm.data (Platform.mangle lbl) (compile_gdecl gdecl) in
-  let f = fun (name, fdecl) -> compile_fdecl tdecls name fdecl in
-  (List.map g gdecls) @ (List.map f fdecls |> List.flatten)
+  let g (lbl, gdecl) = Asm.data (Platform.mangle lbl) (compile_gdecl gdecl) in
+  let f (name, fdecl) = compile_fdecl tdecls name fdecl in
+  List.map g gdecls @ (List.map f fdecls |> List.flatten)

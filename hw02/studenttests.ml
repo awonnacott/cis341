@@ -7,9 +7,5 @@ open Simulator
 (* You should also add additional test cases here to help you   *)
 (* debug your program.                                          *)
 
-
-let provided_tests : suite = [
-  Test ("Student-Provided Big Test for Part III: Score recorded as PartIIITestCase", [
-  ]);
-
-] 
+let provided_tests : suite =
+  [Test ("Student-Provided Big Test for Part III: Score recorded as PartIIITestCase", [])]

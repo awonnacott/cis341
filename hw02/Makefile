@@ -1,20 +1,23 @@
 DIRS := util,grading,x86
-LIBS := unix,str,nums
+PKGS := num
+LIBS := unix,str
 SUBMIT := simulator.ml studenttests.ml
-OTHER := gradedtests.ml main.ml 
 
-.PHONY: all test clean zip
+.PHONY: all test clean format
+
+all: main.native
 
 main.native: $(SUBMIT) $(OTHER)
-	ocamlbuild -Is $(DIRS) -libs $(LIBS) main.native
+	ocamlbuild -cflags -w,+a-4-42 -Is $(DIRS) -pkg $(PKGS) -libs $(LIBS) main.native
 
 main.byte: $(SUBMIT) $(OTHER)
-	ocamlbuild -Is $(DIRS) -libs $(LIBS) main.byte
+	ocamlbuild -cflags -w,+a-4-42 -Is $(DIRS) -pkg $(PKGS) -libs $(LIBS) main.byte
 
-all: main.byte main.native
-
-test: main.native
+test: all
 	./main.native --test
 
 clean:
 	ocamlbuild -clean
+
+format: simulator.ml
+	ocamlformat -i --ocp-indent-compat -m 100 simulator.ml

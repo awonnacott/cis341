@@ -5,6 +5,4 @@ open Assert
 (* You should also add additional test cases here to help you   *)
 (* debug your program.                                          *)
 
-let provided_tests : suite = [
-  
-] 
+let provided_tests : suite = []

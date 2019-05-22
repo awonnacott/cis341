@@ -23,47 +23,52 @@ open Datastructures
      in[n] = combine preds[n] (out[n])
 
 *)
-module type DFA_GRAPH =
-  sig
-    module NodeS : SetS
-    type node = NodeS.elt
+module type DFA_GRAPH = sig
+  module NodeS : SetS
 
-    (* dataflow facts associated with the out-edges of the nodes in 
+  type node = NodeS.elt
+
+  (* dataflow facts associated with the out-edges of the nodes in 
        this graph *)
-    type fact
+  type fact
 
-    (* the abstract type of dataflow graphs *)
-    type t
-    val preds : t -> node -> NodeS.t
-    val succs : t -> node -> NodeS.t
-    val nodes : t -> NodeS.t
+  (* the abstract type of dataflow graphs *)
+  type t
 
-    (* the flow function:
+  val preds : t -> node -> NodeS.t
+
+  val succs : t -> node -> NodeS.t
+
+  val nodes : t -> NodeS.t
+
+  (* the flow function:
        given a graph node and input fact, compute the resulting fact on the 
        output edge of the node                                                
     *)
-    val flow : t -> node -> fact -> fact
+  val flow : t -> node -> fact -> fact
 
-    (* lookup / modify the dataflow annotations associated with a node *)    
-    val out : t -> node -> fact
-    val add_fact : node -> fact -> t -> t
+  (* lookup / modify the dataflow annotations associated with a node *)
+  val out : t -> node -> fact
 
-    (* printing *)
-    val to_string : t -> string
-    val printer : Format.formatter -> t -> unit
-  end
+  val add_fact : node -> fact -> t -> t
+
+  (* printing *)
+  val to_string : t -> string
+
+  val printer : Format.formatter -> t -> unit
+end
 
 (* abstract dataflow lattice signature -------------------------------------- *)
 (* The general algorithm works over a generic lattice of abstract "facts".
     - facts can be combined (this is the 'join' operation)
     - facts can be compared                                                   *)
-module type FACT =
-  sig
-    type t
-    val combine : t list -> t
-    val compare : t -> t -> int
-  end
+module type FACT = sig
+  type t
 
+  val combine : t list -> t
+
+  val compare : t -> t -> int
+end
 
 (* generic iterative dataflow solver ---------------------------------------- *)
 (* This functor takes two modules:
@@ -85,10 +90,6 @@ module type FACT =
 
    TASK: complete the [solve] function, which implements the above algorithm.
 *)
-module Make (Fact : FACT) (Graph : DFA_GRAPH with type fact := Fact.t) =
-  struct
-
-    let solve (g:Graph.t) : Graph.t =
-      failwith "TODO HW6: Solver.solve unimplemented"
-  end
-
+module Make (Fact : FACT) (Graph : DFA_GRAPH with type fact := Fact.t) = struct
+  let solve (g : Graph.t) : Graph.t = failwith "TODO HW6: Solver.solve unimplemented"
+end

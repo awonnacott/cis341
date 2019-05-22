@@ -1,26 +1,21 @@
 INCLUDES= util,x86,grading,ll
-LIBS = unix,str,nums
-SUBMIT := frontend.ml typechecker.ml 
+PKGS = num
+LIBS = unix,str
+SUBMIT := frontend.ml typechecker.ml
 
-HWNAME := hw05
-TIMESTAMP := $(shell /bin/date "+%Y-%m-%d-%H:%M:%S")
-ZIPNAME := $(HWNAME)-submit($(TIMESTAMP)).zip
-
+.PHONY: all test clean format
 
 all: main.native
 
-.PHONY: test
-test: main.native
+test: all
 	./main.native --test
 
-.PHONY: main.native
-main.native: 
-	ocamlbuild -Is $(INCLUDES) -libs $(LIBS) main.native -use-menhir -yaccflag --explain
+main.native:
+	ocamlbuild -cflags -w,+a-4-40-42 -Is $(INCLUDES) -pkg $(PKGS) -libs $(LIBS) main.native -use-menhir -yaccflag --explain
 
-zip: $(SUBMIT)
-	zip '$(ZIPNAME)' $(SUBMIT)
-
-.PHONY: clean
 clean:
 	ocamlbuild -clean
 	rm -rf output a.out
+
+format: frontend.ml typechecker.ml
+	ocamlformat -i --ocp-indent-compat -m 100 frontend.ml typechecker.ml

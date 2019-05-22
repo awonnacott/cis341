@@ -1,25 +1,22 @@
 DIRS := util,grading
+LIBS := unix,str
 SUBMIT := hellocaml.ml providedtests.ml
-HWNAME := hw01
-TIMESTAMP := $(shell /bin/date "+%Y-%m-%d-%H:%M:%S")
-ZIPNAME := $(HWNAME)-submit($(TIMESTAMP)).zip
 
-.PHONY: all test clean zip
-
-main.native: $(SUBMIT)
-	ocamlbuild -Is $(DIRS) -libs unix,str main.native
-
-main.byte:
-	ocamlbuild -Is $(DIRS) -libs unix,str main.byte
+.PHONY: all test clean format
 
 all: main.native
 
-test: main.native
+main.native: $(SUBMIT)
+	ocamlbuild -cflags -w,+a-4-42 -Is $(DIRS) -libs $(LIBS) main.native
+
+main.byte:
+	ocamlbuild -cflags -w,+a-4-42 -Is $(DIRS) -libs $(LIBS) main.byte
+
+test: all
 	./main.native --test
-
-zip: $(SUBMIT)
-	zip '$(ZIPNAME)' $(SUBMIT)
-
 
 clean:
 	ocamlbuild -clean
+
+format: hellocaml.ml
+	ocamlformat -i --ocp-indent-compat -m 100 hellocaml.ml

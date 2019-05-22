@@ -1,3 +1,8 @@
+.vscode/
+a.out
+output/
+llstudents.zip
+
 *.annot
 *.cmo
 *.cma
