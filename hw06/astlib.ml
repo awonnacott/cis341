@@ -289,7 +289,7 @@ and print_stmt_aux fmt s =
       (match so with None -> () | Some s -> print_stmt_aux fmt s) ;
       pp_close_box fmt () ; pps ") " ; print_block_aux fmt body
 
-let print_fdecl_aux fmt {elt= {frtyp; fname; args; body}} =
+let print_fdecl_aux fmt {elt= {frtyp; fname; args; body}; loc= _} =
   let pps = pp_print_string fmt in
   let ppsp = pp_print_space fmt in
   let ppnl = pp_force_newline fmt in

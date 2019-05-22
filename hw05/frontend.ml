@@ -1,7 +1,5 @@
 (* Author: Steve Zdancevic *)
 
-open Ll
-open Llutil
 open Ast
 
 (* instruction streams ------------------------------------------------------ *)
@@ -20,10 +18,10 @@ open Ast
 
 type elt =
   | L of Ll.lbl (* block labels *)
-  | I of uid * Ll.insn (* instruction *)
+  | I of Ll.uid * Ll.insn (* instruction *)
   | T of Ll.terminator (* block terminators *)
-  | G of gid * Ll.gdecl (* hoisted globals (usually strings) *)
-  | E of uid * Ll.insn
+  | G of Ll.gid * Ll.gdecl (* hoisted globals (usually strings) *)
+  | E of Ll.uid * Ll.insn
 
 (* hoisted entry block instructions *)
 
@@ -33,11 +31,17 @@ let ( >@ ) x y = y @ x
 
 let ( >:: ) x y = y :: x
 
-let lift : (uid * insn) list -> stream = List.rev_map (fun (x, i) -> I (x, i))
+let lift : (Ll.uid * Ll.insn) list -> stream = List.rev_map (fun (x, i) -> I (x, i))
 
 (* Build a CFG and collection of global variable definitions from a stream *)
 let cfg_of_stream (code : stream) : Ll.cfg * (Ll.gid * Ll.gdecl) list =
-  let gs, einsns, insns, term_opt, blks =
+  let (gs, einsns, insns, term_opt, blks)
+        : (Ll.gid * Ll.gdecl) list
+          * (Ll.uid * Ll.insn) list
+          * (Ll.uid * Ll.insn) list
+          * (Ll.uid * Ll.terminator) option
+          * (Ll.lbl * Ll.block) list
+    =
     List.fold_left
       (fun (gs, einsns, insns, term_opt, blks) e ->
         match e with
@@ -47,7 +51,7 @@ let cfg_of_stream (code : stream) : Ll.cfg * (Ll.gid * Ll.gdecl) list =
               if List.length insns = 0 then (gs, einsns, [], None, blks)
               else failwith @@ Printf.sprintf "build_cfg: block labeled %s hasno terminator" l
           | Some term ->
-              (gs, einsns, [], None, (l, {insns; term}) :: blks) )
+              (gs, einsns, [], None, ((l, {insns; term}) : Ll.lbl * Ll.block) :: blks) )
         | T t ->
             (gs, einsns, [], Some (Llutil.Parsing.gensym "tmn", t), blks)
         | I (uid, insn) ->
@@ -202,7 +206,7 @@ let gensym : string -> string =
 let size_oat_ty (t : Ast.ty) = 8L
 
 (* Forget the array sizes in an LL type *)
-let rec forget_size = function
+let rec forget_size : Ll.ty -> Ll.ty = function
   | Void ->
       Void
   | I1 ->
@@ -229,10 +233,10 @@ let rec forget_size = function
 (* Generate code to allocate an array of source type TRef (RArray t) of the
    given size. Note "size" is an operand whose value can be computed at
    runtime *)
-let oat_alloc_array ct (t : Ast.ty) (size : Ll.operand) : Ll.ty * operand * stream =
+let oat_alloc_array ct (t : Ast.ty) (size : Ll.operand) : Ll.ty * Ll.operand * stream =
   let ans_id, arr_id = (gensym "array", gensym "raw_array") in
   let ans_ty = cmp_ty ct @@ TRef (RArray t) in
-  let arr_ty = Ptr I64 in
+  let arr_ty : Ll.ty = Ptr I64 in
   ( ans_ty
   , Id ans_id
   , lift
@@ -247,10 +251,10 @@ let oat_alloc_array ct (t : Ast.ty) (size : Ll.operand) : Ll.ty * operand * stre
 
    - make sure to calculate the correct amount of space to allocate!
 *)
-let oat_alloc_struct ct (id : Ast.id) : Ll.ty * operand * stream =
+let oat_alloc_struct ct (id : Ast.id) : Ll.ty * Ll.operand * stream =
   failwith "TODO: oat_alloc_struct"
 
-let str_arr_ty s = Array (1 + String.length s, I8)
+let str_arr_ty s : Ll.ty = Array (1 + String.length s, I8)
 
 let i1_op_of_bool b = Ll.Const (if b then 1L else 0L)
 
@@ -325,7 +329,7 @@ let rec cmp_exp (tc : TypeCtxt.t) (c : Ctxt.t) (exp : Ast.exp node) : Ll.ty * Ll
       let t, ret_ty = typ_of_unop uop in
       let op, code = cmp_exp_as tc c e (cmp_ty tc t) in
       let ans_id = gensym "unop" in
-      let cmp_uop op = function
+      let cmp_uop op : Ast.unop -> Ll.insn = function
         | Ast.Neg ->
             Binop (Sub, I64, i64_op_of_int 0, op)
         | Ast.Lognot ->
@@ -547,7 +551,7 @@ and cmp_block (tc : TypeCtxt.t) (c : Ctxt.t) (rt : Ll.ty) (stmts : Ast.block) : 
    the project less interdependent.  *)
 let get_struct_defns (p : Ast.prog) : TypeCtxt.t =
   List.fold_right
-    (fun d ts -> match d with Ast.Gtdecl {elt= id, fs} -> TypeCtxt.add ts id fs | _ -> ts)
+    (fun d ts -> match d with Ast.Gtdecl {elt= id, fs; loc= _} -> TypeCtxt.add ts id fs | _ -> ts)
     p TypeCtxt.empty
 
 (* Adds each function identifer to the context at an
@@ -557,7 +561,7 @@ let get_struct_defns (p : Ast.prog) : TypeCtxt.t =
 *)
 let cmp_function_ctxt (tc : TypeCtxt.t) (c : Ctxt.t) (p : Ast.prog) : Ctxt.t =
   List.fold_left
-    (fun c -> function Ast.Gfdecl {elt= {frtyp; fname; args}} ->
+    (fun c -> function Ast.Gfdecl {elt= {frtyp; fname; args; body= _}; loc= _} ->
           let ft = TRef (RFun (List.map fst args, frtyp)) in
           Ctxt.add c fname (cmp_ty tc ft, Gid fname) | _ -> c )
     c p
@@ -570,7 +574,7 @@ let cmp_function_ctxt (tc : TypeCtxt.t) (c : Ctxt.t) (p : Ast.prog) : Ctxt.t =
    for global function values).
 *)
 let cmp_global_ctxt (tc : TypeCtxt.t) (c : Ctxt.t) (p : Ast.prog) : Ctxt.t =
-  let gexp_ty c = function
+  let gexp_ty c : exp -> Ll.ty = function
     | Id id ->
         fst (Ctxt.lookup id c)
     | CStruct (t, cs) ->
@@ -589,7 +593,7 @@ let cmp_global_ctxt (tc : TypeCtxt.t) (c : Ctxt.t) (p : Ast.prog) : Ctxt.t =
         failwith ("bad global initializer: " ^ Astlib.string_of_exp (no_loc x))
   in
   List.fold_left
-    (fun c -> function Ast.Gvdecl {elt= {name; init}} ->
+    (fun c -> function Ast.Gvdecl {elt= {name; init}; loc= _} ->
           Ctxt.add c name (Ptr (gexp_ty c init.elt), Gid name) | _ -> c )
     c p
 
@@ -600,7 +604,7 @@ let cmp_global_ctxt (tc : TypeCtxt.t) (c : Ctxt.t) (p : Ast.prog) : Ctxt.t =
 let cmp_fdecl (tc : TypeCtxt.t) (c : Ctxt.t) (f : Ast.fdecl node)
     : Ll.fdecl * (Ll.gid * Ll.gdecl) list
   =
-  let {frtyp; args; body} = f.elt in
+  let {frtyp; args; body; fname= _} = f.elt in
   let add_arg (s_typ, s_id) (c, code, args) =
     let ll_id = gensym s_id in
     let ll_ty = cmp_ty tc s_typ in
@@ -616,7 +620,7 @@ let cmp_fdecl (tc : TypeCtxt.t) (c : Ctxt.t) (f : Ast.fdecl node)
   let argtys, f_param = List.split args in
   let f_ty = (argtys, ll_rty) in
   let return_code =
-    let return_val =
+    let return_val : Ll.operand option =
       match frtyp with
       | RetVoid ->
           None
@@ -658,8 +662,10 @@ let rec cmp_gexp c (tc : TypeCtxt.t) (e : Ast.exp node) : Ll.gdecl * (Ll.gid * L
       let len = List.length cs in
       let ll_u = cmp_ty tc u in
       let gid = gensym "global_arr" in
-      let arr_t = Struct [I64; Array (len, ll_u)] in
-      let arr_i = GStruct [(I64, GInt (Int64.of_int len)); (Array (len, ll_u), GArray elts)] in
+      let arr_t : Ll.ty = Struct [I64; Array (len, ll_u)] in
+      let arr_i : Ll.ginit =
+        GStruct [(I64, GInt (Int64.of_int len)); (Array (len, ll_u), GArray elts)]
+      in
       ((Ptr arr_t, GGid gid), (gid, (arr_t, arr_i)) :: gs)
   (* STRUCT TASK: Complete this code that generates the global initializers for a struct value. *)
   | CStruct (id, cs) ->
@@ -682,8 +688,8 @@ let builtins =
       (fname, Ll.Fun (args, ret)) )
     Typechecker.builtins
 
-let tctxt_to_tdecls c =
-  List.map (fun (i, l) -> (i, Struct (List.map (fun f -> cmp_ty c f.ftyp) l))) c
+let tctxt_to_tdecls (c : TypeCtxt.t) : (Ast.id * Ll.ty) list =
+  List.map (fun (i, l) -> (i, Ll.Struct (List.map (fun f -> cmp_ty c f.ftyp) l))) c
 
 (* Compile a OAT program to LLVMlite *)
 let cmp_prog (p : Ast.prog) : Ll.prog =
@@ -700,7 +706,7 @@ let cmp_prog (p : Ast.prog) : Ll.prog =
     List.fold_right
       (fun d (fs, gs) ->
         match d with
-        | Ast.Gvdecl {elt= gd} ->
+        | Ast.Gvdecl {elt= gd; loc= _} ->
             let ll_gd, gs' = cmp_gexp c tc gd.init in
             (fs, ((gd.name, ll_gd) :: gs') @ gs)
         | Ast.Gfdecl fd ->

@@ -209,9 +209,9 @@ let typecheck_program (p : Ast.prog) : unit =
   List.iter
     (fun p ->
       match p with
-      | Gfdecl ({elt= f} as l) ->
+      | Gfdecl ({elt= f; loc= _} as l) ->
           typecheck_fdecl tc f l
-      | Gtdecl ({elt= id, fs} as l) ->
+      | Gtdecl ({elt= id, fs; loc= _} as l) ->
           typecheck_tdecl tc id fs l
       | _ ->
           () )

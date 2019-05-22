@@ -406,16 +406,18 @@ let rec cmp_exp (tc : TypeCtxt.t) (c : Ctxt.t) (exp : Ast.exp node) : Ll.ty * Ll
       let bound_id = gensym "bnd_" in
       let _, size_op, size_code = cmp_exp tc c e1 in
       let arr_ty, arr_op, alloc_code = oat_alloc_array tc elt_ty size_op in
-      let for_loop =
+      let for_loop : Ast.stmt node =
         no_loc
         @@ Ast.For
              ( [(id, no_loc (CInt 0L))]
-             , Some (no_loc @@ Bop (Lt, no_loc @@ Id id, no_loc @@ Id bound_id))
+             , Some (no_loc @@ Bop (Lt, no_loc @@ Ast.Id id, no_loc @@ Ast.Id bound_id))
              , Some
                  ( no_loc
-                 @@ Assn (no_loc @@ Id id, no_loc @@ Bop (Add, no_loc @@ Id id, no_loc @@ CInt 1L))
-                 )
-             , [no_loc @@ Assn (no_loc @@ Index (no_loc @@ Id ptr_id, no_loc @@ Id id), e2)] )
+                 @@ Assn
+                      ( no_loc @@ Ast.Id id
+                      , no_loc @@ Bop (Add, no_loc @@ Ast.Id id, no_loc @@ CInt 1L) ) )
+             , [no_loc @@ Assn (no_loc @@ Index (no_loc @@ Ast.Id ptr_id, no_loc @@ Ast.Id id), e2)]
+             )
       in
       let new_context = Ctxt.add c ptr_id (Ptr arr_ty, Id ptr_id) in
       let new_context = Ctxt.add new_context bound_id (Ptr I64, Id bound_id) in
@@ -611,7 +613,7 @@ and cmp_block (tc : TypeCtxt.t) (c : Ctxt.t) (rt : Ll.ty) (stmts : Ast.block) : 
    the project less interdependent.  *)
 let get_struct_defns (p : Ast.prog) : TypeCtxt.t =
   List.fold_right
-    (fun d ts -> match d with Ast.Gtdecl {elt= id, fs} -> TypeCtxt.add ts id fs | _ -> ts)
+    (fun d ts -> match d with Ast.Gtdecl {elt= id, fs; loc= _} -> TypeCtxt.add ts id fs | _ -> ts)
     p TypeCtxt.empty
 
 (* Adds each function identifer to the context at an
@@ -621,7 +623,7 @@ let get_struct_defns (p : Ast.prog) : TypeCtxt.t =
 *)
 let cmp_function_ctxt (tc : TypeCtxt.t) (c : Ctxt.t) (p : Ast.prog) : Ctxt.t =
   List.fold_left
-    (fun c -> function Ast.Gfdecl {elt= {frtyp; fname; args}} ->
+    (fun c -> function Ast.Gfdecl {elt= {frtyp; fname; args; body= _}; loc= _} ->
           let ft = TRef (RFun (List.map fst args, frtyp)) in
           Ctxt.add c fname (cmp_ty tc ft, Gid fname) | _ -> c )
     c p
@@ -634,7 +636,7 @@ let cmp_function_ctxt (tc : TypeCtxt.t) (c : Ctxt.t) (p : Ast.prog) : Ctxt.t =
    for global function values).
 *)
 let cmp_global_ctxt (tc : TypeCtxt.t) (c : Ctxt.t) (p : Ast.prog) : Ctxt.t =
-  let gexp_ty c = function
+  let gexp_ty c : exp -> Ll.ty = function
     | Id id ->
         fst (Ctxt.lookup id c)
     | CStruct (t, cs) ->
@@ -653,7 +655,7 @@ let cmp_global_ctxt (tc : TypeCtxt.t) (c : Ctxt.t) (p : Ast.prog) : Ctxt.t =
         failwith ("bad global initializer: " ^ Astlib.string_of_exp (no_loc x))
   in
   List.fold_left
-    (fun c -> function Ast.Gvdecl {elt= {name; init}} ->
+    (fun c -> function Ast.Gvdecl {elt= {name; init}; loc= _} ->
           Ctxt.add c name (Ptr (gexp_ty c init.elt), Gid name) | _ -> c )
     c p
 
@@ -664,7 +666,7 @@ let cmp_global_ctxt (tc : TypeCtxt.t) (c : Ctxt.t) (p : Ast.prog) : Ctxt.t =
 let cmp_fdecl (tc : TypeCtxt.t) (c : Ctxt.t) (f : Ast.fdecl node)
     : Ll.fdecl * (Ll.gid * Ll.gdecl) list
   =
-  let {frtyp; args; body} = f.elt in
+  let {frtyp; args; body; fname= _} = f.elt in
   let add_arg (s_typ, s_id) (c, code, args) =
     let ll_id = gensym s_id in
     let ll_ty = cmp_ty tc s_typ in
@@ -777,7 +779,7 @@ let cmp_prog (p : Ast.prog) : Ll.prog =
     List.fold_right
       (fun d (fs, gs) ->
         match d with
-        | Ast.Gvdecl {elt= gd} ->
+        | Ast.Gvdecl {elt= gd; loc= _} ->
             let ll_gd, gs' = cmp_gexp c tc gd.init in
             (fs, ((gd.name, ll_gd) :: gs') @ gs)
         | Ast.Gfdecl fd ->

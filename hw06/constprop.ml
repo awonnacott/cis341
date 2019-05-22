@@ -10,7 +10,7 @@ module SymConst = struct
 
   (* Uid is not defined at the point *)
 
-  let compare s t =
+  let compare (s : t) (t : t) : int =
     match (s, t) with
     | Const i, Const j ->
         Int64.compare i j

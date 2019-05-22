@@ -81,12 +81,10 @@ let pass_all_executed_oat_file tests =
     tests
 
 let compile_with_config live regalloc ll_ast =
-  let open Registers in
-  let open Backend in
   let _ = set_liveness live in
   let _ = set_regalloc regalloc in
   let asm_ast = compile_prog ll_ast in
-  let histogram, size = histogram_of_prog asm_ast in
+  let histogram, size = Registers.histogram_of_prog asm_ast in
   (histogram, size, asm_ast)
 
 let assert_quality fn ll_ast =

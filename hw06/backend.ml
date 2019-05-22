@@ -1,8 +1,6 @@
 (* Author: Steve Zdancewic *)
 (* ll ir compilation -------------------------------------------------------- *)
 
-open Ll
-open Llutil
 open X86
 
 (* allocated llvmlite function bodies --------------------------------------- *)
@@ -21,16 +19,16 @@ module Alloc = struct
 
   type insn =
     | ILbl of loc
-    | PMov of (loc * ty * operand) list
-    | Binop of loc * bop * ty * operand * operand
-    | Alloca of loc * ty
-    | Load of loc * ty * operand
-    | Store of ty * operand * operand
-    | Icmp of loc * Ll.cnd * ty * operand * operand
-    | Call of loc * ty * operand * (ty * operand) list
-    | Bitcast of loc * ty * operand * ty
-    | Gep of loc * ty * operand * operand list
-    | Ret of ty * operand option
+    | PMov of (loc * Ll.ty * operand) list
+    | Binop of loc * Ll.bop * Ll.ty * operand * operand
+    | Alloca of loc * Ll.ty
+    | Load of loc * Ll.ty * operand
+    | Store of Ll.ty * operand * operand
+    | Icmp of loc * Ll.cnd * Ll.ty * operand * operand
+    | Call of loc * Ll.ty * operand * (Ll.ty * operand) list
+    | Bitcast of loc * Ll.ty * operand * Ll.ty
+    | Gep of loc * Ll.ty * operand * operand list
+    | Ret of Ll.ty * operand option
     | Br of loc
     | Cbr of operand * loc * loc
 
@@ -74,7 +72,7 @@ module Alloc = struct
     | Id u ->
         Loc (f u)
 
-  let map_insn f g : uid * Ll.insn -> insn =
+  let map_insn f g : Ll.uid * Ll.insn -> insn =
     let mo = map_operand f g in
     function
     | x, Binop (b, t, o, o') ->
@@ -94,7 +92,7 @@ module Alloc = struct
     | x, Gep (t, o, is) ->
         Gep (f x, t, mo o, List.map mo is)
 
-  let map_terminator f g : uid * Ll.terminator -> insn =
+  let map_terminator f g : Ll.uid * Ll.terminator -> insn =
     let mo = map_operand f g in
     function
     | _, Ret (t, None) ->
@@ -109,7 +107,8 @@ module Alloc = struct
   let map_lset f (s : UidSet.t) : LocSet.t =
     UidSet.fold (fun x t -> LocSet.add (f x) t) s LocSet.empty
 
-  let of_block (f : Ll.uid -> loc) (g : Ll.gid -> X86.lbl) (live : uid -> UidSet.t) (b : Ll.block)
+  let of_block (f : Ll.uid -> loc) (g : Ll.gid -> X86.lbl) (live : Ll.uid -> UidSet.t)
+      (b : Ll.block)
       : fbody
     =
     List.map
@@ -125,7 +124,7 @@ module Alloc = struct
   let of_lbl_block f g live ((l, b) : Ll.lbl * Ll.block) : fbody =
     (ILbl (f l), map_lset f @@ live l) :: of_block f g live b
 
-  let of_cfg (f : Ll.uid -> loc) (g : Ll.gid -> X86.lbl) (live : uid -> UidSet.t)
+  let of_cfg (f : Ll.uid -> loc) (g : Ll.gid -> X86.lbl) (live : Ll.uid -> UidSet.t)
       ((e, bs) : Ll.cfg)
       : fbody
     =
@@ -169,11 +168,11 @@ let prog_of_x86stream : x86stream -> X86.prog =
      - the number of bytes to be allocated on the stack due to spills
 *)
 
-type layout = {uid_loc: uid -> Alloc.loc; spill_bytes: int}
+type layout = {uid_loc: Ll.uid -> Alloc.loc; spill_bytes: int}
 
 (* The liveness analysis will return the set of variables that are live at
    a given program point, as specified by the uid. *)
-type liveness = uid -> UidSet.t
+type liveness = Ll.uid -> UidSet.t
 
 (* The set of all caller-save registers available for register allocation *)
 let caller_save : LocSet.t =
@@ -217,9 +216,7 @@ let alloc_fdecl (layout : layout) (liveness : liveness) (f : Ll.fdecl) : Alloc.f
 
 (* compiling operands  ------------------------------------------------------ *)
 
-let compile_operand : Alloc.operand -> X86.operand =
-  let open Alloc in
-  function
+let compile_operand : Alloc.operand -> X86.operand = function
   | Null ->
       Asm.(~$0)
   | Const i ->
@@ -236,7 +233,6 @@ let compile_operand : Alloc.operand -> X86.operand =
       Asm.(Ind1 (Lbl l))
 
 let emit_mov (src : X86.operand) (dst : X86.operand) : x86stream =
-  let open X86 in
   match (src, dst) with
   | Imm (Lbl l), Reg _ ->
       lift Asm.[(Leaq, [Ind3 (Lbl l, Rip); dst])]
@@ -297,9 +293,8 @@ let emit_mov (src : X86.operand) (dst : X86.operand) : x86stream =
 *)
 
 let compile_pmov live (ol : (Alloc.loc * Ll.ty * Alloc.operand) list) : x86stream =
-  let open Alloc in
   let module OpSet = Set.Make (struct
-    type t = operand
+    type t = Alloc.operand
 
     let compare = compare
   end)
@@ -308,7 +303,7 @@ let compile_pmov live (ol : (Alloc.loc * Ll.ty * Alloc.operand) list) : x86strea
      The operands that actually need to be moved are those that are
          - not in the right location already, and
          - still live                                                         *)
-  let ol' = List.filter (fun (x, _, o) -> Loc x <> o && LocSet.mem x live) ol in
+  let ol' = List.filter (fun (x, _, o) -> Alloc.Loc x <> o && LocSet.mem x live) ol in
   let rec loop outstream ol =
     (* Find the _set_ of all sources that still need to be moved. *)
     let srcs = List.fold_left (fun s (_, _, o) -> OpSet.add o s) OpSet.empty ol in
@@ -331,7 +326,7 @@ let compile_pmov live (ol : (Alloc.loc * Ll.ty * Alloc.operand) list) : x86strea
 
 (* compiling call  ---------------------------------------------------------- *)
 
-let compile_call live (fo : Alloc.operand) (os : (ty * Alloc.operand) list) : x86stream =
+let compile_call live (fo : Alloc.operand) (os : (Ll.ty * Alloc.operand) list) : x86stream =
   let oreg, ostk, _ =
     List.fold_left
       (fun (oreg, ostk, i) (t, o) ->
@@ -351,7 +346,7 @@ let compile_call live (fo : Alloc.operand) (os : (ty * Alloc.operand) list) : x8
 
 (* compiling getelementptr (gep)  ------------------------------------------- *)
 
-let rec size_ty tdecls t : int =
+let rec size_ty tdecls (t : Ll.ty) : int =
   match t with
   | Void | I8 | Fun _ ->
       0
@@ -366,7 +361,7 @@ let rec size_ty tdecls t : int =
 
 (* Compute the size of the offset (in bytes) of the nth element of a region
    of memory whose types are given by the list. Also returns the nth type. *)
-let index_into tdecls (ts : ty list) (n : int) : int * ty =
+let index_into tdecls (ts : Ll.ty list) (n : int) : int * Ll.ty =
   let rec loop ts n acc =
     match (ts, n) with
     | u :: _, 0 ->
@@ -383,7 +378,7 @@ let imm_of_int (n : int) = Imm (Lit (Int64.of_int n))
 let compile_getelementptr tdecls (t : Ll.ty) (o : Alloc.operand) (path : Alloc.operand list)
     : x86stream
   =
-  let rec loop ty path (code : x86stream) =
+  let rec loop (ty : Ll.ty) path (code : x86stream) =
     match (ty, path) with
     | _, [] ->
         code
@@ -451,7 +446,6 @@ let compile_fbody tdecls (af : Alloc.fbody) : x86stream =
           Set Ge
     in
     let co = compile_operand in
-    let open Alloc in
     match af with
     | [] ->
         outstream
@@ -488,9 +482,10 @@ let compile_fbody tdecls (af : Alloc.fbody) : x86stream =
            >@ emit_mov (co o') (Reg Rcx)
            >@ lift Asm.[(cb bop, [~%Rcx; ~%Rax]); (Movq, [~%Rax; co (Loc x)])] )
     | (Binop (LReg r, bop, _, o, o'), _) :: rest
-      when Loc (LReg r) = o' && (bop = Add || bop = Mul || bop = And || bop = Or || bop = Xor) ->
+      when Alloc.Loc (LReg r) = o' && (bop = Add || bop = Mul || bop = And || bop = Or || bop = Xor)
+      ->
         loop rest @@ (outstream >:: I Asm.(cb bop, [co o; ~%r]))
-    | (Binop (LReg r, b, _, o, o'), _) :: rest when Loc (LReg r) <> o' ->
+    | (Binop (LReg r, b, _, o, o'), _) :: rest when Alloc.Loc (LReg r) <> o' ->
         loop rest @@ (outstream >@ emit_mov (co o) (Reg r) >:: I Asm.(cb b, [co o'; ~%r]))
     | (Binop (x, b, _, o, o'), _) :: rest ->
         loop rest
@@ -528,14 +523,15 @@ let compile_fbody tdecls (af : Alloc.fbody) : x86stream =
         let fptr_op, init_fp, restore_fp =
           match fo with
           | Loc (LReg (Rdi | Rsi | Rdx | Rcx | R08 | R09)) ->
-              ( Loc (LReg R15)
+              ( Alloc.Loc (LReg R15)
               , [I Asm.(Pushq, [~%R15])] >@ emit_mov (co fo) (Reg R15)
               , [I Asm.(Popq, [~%R15])] )
           | _ ->
               (fo, [], [])
         in
         let () =
-          Platform.verb @@ Printf.sprintf "call: %s live = %s\n" (str_operand fo) (str_locset live)
+          Platform.verb
+          @@ Printf.sprintf "call: %s live = %s\n" (Alloc.str_operand fo) (str_locset live)
         in
         let save = LocSet.(elements @@ inter (remove x live) caller_save) in
         loop rest
@@ -577,13 +573,13 @@ let compile_fbody tdecls (af : Alloc.fbody) : x86stream =
 
   See the examples no_reg_layout and greedy_layout for how to use this function.
 *)
-let fold_fdecl (f_param : 'a -> uid * Ll.ty -> 'a) (f_lbl : 'a -> lbl -> 'a)
-    (f_insn : 'a -> uid * Ll.insn -> 'a) (f_term : 'a -> uid * Ll.terminator -> 'a) (init : 'a)
-    (f : Ll.fdecl)
+let fold_fdecl (f_param : 'a -> Ll.uid * Ll.ty -> 'a) (f_lbl : 'a -> lbl -> 'a)
+    (f_insn : 'a -> Ll.uid * Ll.insn -> 'a) (f_term : 'a -> Ll.uid * Ll.terminator -> 'a)
+    (init : 'a) (f : Ll.fdecl)
     : 'a
   =
   let fold_params ps a = List.fold_left f_param a ps in
-  let fold_block {insns; term} a = f_term (List.fold_left f_insn a insns) term in
+  let fold_block ({insns; term} : Ll.block) a = f_term (List.fold_left f_insn a insns) term in
   let fold_lbl_block (l, blk) a = fold_block blk (f_lbl a l) in
   let fold_lbl_blocks bs a = List.fold_left (fun a b -> fold_lbl_block b a) a bs in
   let entry, bs = f.f_cfg in
@@ -764,7 +760,7 @@ let set_regalloc name =
 
 (* Compile a function declaration using the chosen liveness analysis
    and register allocation strategy. *)
-let compile_fdecl tdecls (g : gid) (f : Ll.fdecl) : x86stream =
+let compile_fdecl tdecls (g : Ll.gid) (f : Ll.fdecl) : x86stream =
   let liveness = !liveness_fn f in
   let layout = !layout_fn f liveness in
   let afdecl = alloc_fdecl layout liveness f in
@@ -775,7 +771,7 @@ let compile_fdecl tdecls (g : gid) (f : Ll.fdecl) : x86stream =
 
 (* compile_gdecl ------------------------------------------------------------ *)
 
-let rec compile_ginit = function
+let rec compile_ginit : Ll.ginit -> X86.data list = function
   | GNull ->
       [Quad (Lit 0L)]
   | GGid gid ->
@@ -791,7 +787,7 @@ and compile_gdecl (_, g) = compile_ginit g
 
 (* compile_prog ------------------------------------------------------------- *)
 
-let compile_prog {tdecls; gdecls; fdecls} : X86.prog =
+let compile_prog ({tdecls; gdecls; fdecls; edecls= _} : Ll.prog) : X86.prog =
   let g (lbl, gdecl) = Asm.data (Platform.mangle lbl) (compile_gdecl gdecl) in
   let f (name, fdecl) = prog_of_x86stream @@ compile_fdecl tdecls name fdecl in
   List.map g gdecls @ List.(flatten @@ map f fdecls)

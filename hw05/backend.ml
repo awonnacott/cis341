@@ -2,7 +2,6 @@
 
 (* ll ir compilation -------------------------------------------------------- *)
 
-open Ll
 open X86
 
 (* Overview ----------------------------------------------------------------- *)
@@ -62,11 +61,11 @@ let rbp_offset (offset : int) : X86.operand =
    the stack.
 *)
 
-type layout = (uid * X86.operand) list
+type layout = (Ll.uid * X86.operand) list
 
 (* A context contains the global type declarations (needed for getelementptr
    calculations) and a stack layout. *)
-type ctxt = {tdecls: (tid * ty) list; layout: layout}
+type ctxt = {tdecls: (Ll.tid * Ll.ty) list; layout: layout}
 
 (* useful for looking up items in tdecls or layouts *)
 let lookup m x = List.assoc x m
@@ -144,7 +143,7 @@ let arg_reg : int -> X86.operand option = function
   | n ->
       None
 
-let compile_call ctxt fop args =
+let compile_call ctxt (fop : Ll.operand) args =
   let op_to_rax = compile_operand ctxt (Reg Rax) in
   let call_code, op =
     match fop with
@@ -199,7 +198,7 @@ let compile_call ctxt fop args =
    - Void, i8, and functions have undefined sizes according to LLVMlite.
      Your function should simply return 0 in those cases
 *)
-let rec size_ty tdecls t : int =
+let rec size_ty tdecls (t : Ll.ty) : int =
   match t with
   | Void | I8 | Fun _ ->
       0
@@ -214,7 +213,7 @@ let rec size_ty tdecls t : int =
 
 (* Compute the size of the offset (in bytes) of the nth element of a region
    of memory whose types are given by the list. Also returns the nth type. *)
-let index_into tdecls (ts : ty list) (n : int) : int * ty =
+let index_into tdecls (ts : Ll.ty list) (n : int) : int * Ll.ty =
   let rec loop ts n acc =
     match (ts, n) with
     | u :: _, 0 ->
@@ -253,7 +252,7 @@ let index_into tdecls (ts : ty list) (n : int) : int * ty =
 *)
 let compile_gep ctxt (op : Ll.ty * Ll.operand) (path : Ll.operand list) : ins list =
   let op_to_rax = compile_operand ctxt (Reg Rax) in
-  let rec loop ty path code =
+  let rec loop (ty : Ll.ty) (path : Ll.operand list) code =
     match (ty, path) with
     | _, [] ->
         List.rev code
@@ -302,7 +301,7 @@ let compile_gep ctxt (op : Ll.ty * Ll.operand) (path : Ll.operand list) : ins li
 
    - Bitcast: does nothing interesting at the assembly level
 *)
-let compile_insn ctxt (uid, i) : X86.ins list =
+let compile_insn ctxt ((uid, i) : Ll.uid * Ll.insn) : X86.ins list =
   let op_to = compile_operand ctxt in
   let op_to_rax = op_to (Reg Rax) in
   (* Move the value of op into rax *)
@@ -392,7 +391,7 @@ let compile_terminator ctxt t =
 (* compiling blocks --------------------------------------------------------- *)
 
 (* We have left this helper function here for you to complete. *)
-let compile_block ctxt blk : ins list =
+let compile_block ctxt (blk : Ll.block) : ins list =
   let insns = List.map (compile_insn ctxt) blk.insns |> List.flatten in
   let term = compile_terminator ctxt (snd blk.term) in
   insns @ term
@@ -420,8 +419,8 @@ let arg_loc (n : int) : operand = match arg_reg n with Some op -> op | None -> r
    - see the discusion about locals
 
 *)
-let stack_layout args (block, lbled_blocks) : layout =
-  let lbled_block_isns = List.map (fun (_, blk) -> blk.insns) lbled_blocks in
+let stack_layout args ((block, lbled_blocks) : Ll.cfg) : layout =
+  let lbled_block_isns = List.map (fun ((_, blk) : Ll.uid * Ll.block) -> blk.insns) lbled_blocks in
   let cfg_uids = List.map fst (block.insns @ List.flatten lbled_block_isns) in
   List.mapi (fun i uid -> (uid, rbp_offset (-i - 1))) (args @ cfg_uids)
 
@@ -441,7 +440,7 @@ let stack_layout args (block, lbled_blocks) : layout =
    - the function entry code should allocate the stack storage needed
      to hold all of the local stack slots.
 *)
-let compile_fdecl tdecls name {f_ty; f_param; f_cfg} =
+let compile_fdecl tdecls name ({f_ty; f_param; f_cfg} : Ll.fdecl) =
   let entry_name = Platform.mangle name in
   let layout = stack_layout f_param f_cfg in
   let init_arg_code =
@@ -464,7 +463,7 @@ let compile_fdecl tdecls name {f_ty; f_param; f_cfg} =
 (* Compile a global value into an X86 global data declaration and map
    a global uid to its associated X86 label.
 *)
-let rec compile_ginit = function
+let rec compile_ginit : Ll.ginit -> X86.data list = function
   | GNull ->
       [Quad (Lit 0L)]
   | GGid gid ->
@@ -479,7 +478,7 @@ let rec compile_ginit = function
 and compile_gdecl (_, g) = compile_ginit g
 
 (* compile_prog ------------------------------------------------------------- *)
-let compile_prog {tdecls; gdecls; fdecls} : X86.prog =
+let compile_prog ({tdecls; gdecls; fdecls; edecls= _} : Ll.prog) : X86.prog =
   let g (lbl, gdecl) = Asm.data (Platform.mangle lbl) (compile_gdecl gdecl) in
   let f (name, fdecl) = compile_fdecl tdecls name fdecl in
   List.map g gdecls @ (List.map f fdecls |> List.flatten)

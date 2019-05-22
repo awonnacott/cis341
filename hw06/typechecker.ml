@@ -473,7 +473,7 @@ let create_struct_ctxt (p : Ast.prog) : Tctxt.t =
   List.fold_left
     (fun c d ->
       match d with
-      | Gtdecl ({elt= id, fs} as l) ->
+      | Gtdecl ({elt= id, fs; loc= _} as l) ->
           if List.exists (fun x -> id = fst x) c.structs then
             type_error l ("Redeclaration of struct " ^ id)
           else Tctxt.add_struct c id fs
@@ -490,7 +490,7 @@ let create_function_ctxt (tc : Tctxt.t) (p : Ast.prog) : Tctxt.t =
   List.fold_left
     (fun c d ->
       match d with
-      | Gfdecl ({elt= f} as l) ->
+      | Gfdecl ({elt= f; loc= _} as l) ->
           if List.exists (fun x -> fst x = f.fname) c.globals then
             type_error l ("Redeclaration of " ^ f.fname)
           else Tctxt.add_global c f.fname (TRef (RFun (List.map fst f.args, f.frtyp)))
@@ -502,7 +502,7 @@ let create_global_ctxt (tc : Tctxt.t) (p : Ast.prog) : Tctxt.t =
   List.fold_left
     (fun c d ->
       match d with
-      | Gvdecl ({elt= decl} as l) ->
+      | Gvdecl ({elt= decl; loc= _} as l) ->
           let e = typecheck_exp tc decl.init in
           if List.exists (fun x -> fst x = decl.name) c.globals then
             type_error l ("Redeclaration of " ^ decl.name)
@@ -521,9 +521,9 @@ let typecheck_program (p : Ast.prog) : unit =
   List.iter
     (fun p ->
       match p with
-      | Gfdecl ({elt= f} as l) ->
+      | Gfdecl ({elt= f; loc= _} as l) ->
           typecheck_fdecl tc f l
-      | Gtdecl ({elt= id, fs} as l) ->
+      | Gtdecl ({elt= id, fs; loc= _} as l) ->
           typecheck_tdecl tc id fs l
       | _ ->
           () )

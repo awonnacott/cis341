@@ -1,9 +1,6 @@
 (* Author: Steve Zdancewic *)
 (* ll ir compilation -------------------------------------------------------- *)
 
-open Ll
-open X86
-
 (* Overview ----------------------------------------------------------------- *)
 
 (* We suggest that you spend some time understanding this entire file and
@@ -14,19 +11,19 @@ open X86
 (* helpers ------------------------------------------------------------------ *)
 
 (* Map LL comparison operations to X86 condition codes *)
-let compile_cnd = function
-  | Ll.Eq ->
-      X86.Eq
-  | Ll.Ne ->
-      X86.Neq
-  | Ll.Slt ->
-      X86.Lt
-  | Ll.Sle ->
-      X86.Le
-  | Ll.Sgt ->
-      X86.Gt
-  | Ll.Sge ->
-      X86.Ge
+let compile_cnd : Ll.cnd -> X86.cnd = function
+  | Eq ->
+      Eq
+  | Ne ->
+      Neq
+  | Slt ->
+      Lt
+  | Sle ->
+      Le
+  | Sgt ->
+      Gt
+  | Sge ->
+      Ge
 
 (* locals and layout -------------------------------------------------------- *)
 
@@ -54,11 +51,11 @@ let compile_cnd = function
    the stack.
 *)
 
-type layout = (uid * X86.operand) list
+type layout = (Ll.uid * X86.operand) list
 
 (* A context contains the global type declarations (needed for getelementptr
    calculations) and a stack layout. *)
-type ctxt = {tdecls: (tid * ty) list; layout: layout}
+type ctxt = {tdecls: (Ll.tid * Ll.ty) list; layout: layout}
 
 (* useful for looking up items in tdecls or layouts *)
 let lookup m x = List.assoc x m
@@ -90,7 +87,7 @@ let lookup m x = List.assoc x m
    the X86 instruction that moves an LLVM operand into a designated
    destination (usually a register).
 *)
-let compile_operand ctxt dest : Ll.operand -> ins = function
+let compile_operand ctxt dest : Ll.operand -> X86.ins = function
   | _ ->
       failwith "compile_operand unimplemented"
 
@@ -163,7 +160,7 @@ let rec size_ty tdecls t : int = failwith "size_ty not implemented"
       in (4), but relative to the type f the sub-element picked out
       by the path so far
 *)
-let compile_gep ctxt (op : Ll.ty * Ll.operand) (path : Ll.operand list) : ins list =
+let compile_gep ctxt (op : Ll.ty * Ll.operand) (path : Ll.operand list) : X86.ins list =
   failwith "compile_gep not implemented"
 
 (* compiling instructions  -------------------------------------------------- *)
@@ -208,9 +205,9 @@ let compile_terminator ctxt t = failwith "compile_terminator not implemented"
 (* compiling blocks --------------------------------------------------------- *)
 
 (* We have left this helper function here for you to complete. *)
-let compile_block ctxt blk : ins list = failwith "compile_block not implemented"
+let compile_block ctxt blk : X86.ins list = failwith "compile_block not implemented"
 
-let compile_lbl_block lbl ctxt blk : elem = Asm.text lbl (compile_block ctxt blk)
+let compile_lbl_block lbl ctxt blk : X86.elem = X86.Asm.text lbl (compile_block ctxt blk)
 
 (* compile_fdecl ------------------------------------------------------------ *)
 
@@ -221,7 +218,7 @@ let compile_lbl_block lbl ctxt blk : elem = Asm.text lbl (compile_block ctxt blk
 
    [ NOTE: the first six arguments are numbered 0 .. 5 ]
 *)
-let arg_loc (n : int) : operand = failwith "arg_loc not implemented"
+let arg_loc (n : int) : Ll.operand = failwith "arg_loc not implemented"
 
 (* We suggest that you create a helper function that computes the
    stack layout for a given function declaration.
@@ -250,13 +247,14 @@ let stack_layout args (block, lbled_blocks) : layout = failwith "stack_layout no
    - the function entry code should allocate the stack storage needed
      to hold all of the local stack slots.
 *)
-let compile_fdecl tdecls name {f_ty; f_param; f_cfg} = failwith "compile_fdecl unimplemented"
+let compile_fdecl tdecls name ({f_ty; f_param; f_cfg} : Ll.fdecl) =
+  failwith "compile_fdecl unimplemented"
 
 (* compile_gdecl ------------------------------------------------------------ *)
 (* Compile a global value into an X86 global data declaration and map
    a global uid to its associated X86 label.
 *)
-let rec compile_ginit = function
+let rec compile_ginit : Ll.ginit -> X86.data list = function
   | GNull ->
       [Quad (Lit 0L)]
   | GGid gid ->
@@ -271,7 +269,7 @@ let rec compile_ginit = function
 and compile_gdecl (_, g) = compile_ginit g
 
 (* compile_prog ------------------------------------------------------------- *)
-let compile_prog {tdecls; gdecls; fdecls} : X86.prog =
-  let g (lbl, gdecl) = Asm.data (Platform.mangle lbl) (compile_gdecl gdecl) in
+let compile_prog ({tdecls; gdecls; fdecls; edecls= _} : Ll.prog) : X86.prog =
+  let g (lbl, gdecl) : X86.elem = X86.Asm.data (Platform.mangle lbl) (compile_gdecl gdecl) in
   let f (name, fdecl) = compile_fdecl tdecls name fdecl in
   List.map g gdecls @ (List.map f fdecls |> List.flatten)

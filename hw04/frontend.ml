@@ -238,7 +238,7 @@ and cmp_block (c : Ctxt.t) (rt : Ll.ty) (stmts : Ast.block) : stream =
 *)
 let cmp_function_ctxt (c : Ctxt.t) (p : Ast.prog) : Ctxt.t =
   List.fold_left
-    (fun c -> function Ast.Gfdecl {elt= {frtyp; fname; args}} ->
+    (fun c -> function Ast.Gfdecl {elt= {frtyp; fname; args; body= _}; loc= _} ->
           let ft = TRef (RFun (List.map fst args, frtyp)) in
           Ctxt.add c fname (cmp_ty ft, Gid fname) | _ -> c )
     c p
@@ -307,7 +307,7 @@ let cmp_prog (p : Ast.prog) : Ll.prog =
     List.fold_right
       (fun d (fs, gs) ->
         match d with
-        | Ast.Gvdecl {elt= gd} ->
+        | Ast.Gvdecl {elt= gd; loc= _} ->
             let ll_gd, gs' = cmp_gexp c gd.init in
             (fs, ((gd.name, ll_gd) :: gs') @ gs)
         | Ast.Gfdecl fd ->
