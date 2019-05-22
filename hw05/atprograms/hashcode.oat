@@ -19,7 +19,7 @@ int hash(string s) {
         }
         var char = int_arr[i];
         hash = hash + power * char;
-        
+
     }
     return hash;
 }

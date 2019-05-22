@@ -12,7 +12,7 @@ open Ast
      of the instruction stream. You will find this useful for compiling string
      literals
    - E of uid * insn: allows you to emit an instruction that will be moved up
-     to the entry block of the current function. This will be useful for 
+     to the entry block of the current function. This will be useful for
      compiling local variable declarations
 *)
 
@@ -95,14 +95,14 @@ end
 (* compiling OAT types ------------------------------------------------------ *)
 
 (* The mapping of source types onto LLVMlite is straightforward. Booleans and ints
-   are represented as the the corresponding integer types. OAT strings are 
+   are represented as the the corresponding integer types. OAT strings are
    pointers to bytes (I8). Arrays are the most interesting type: they are
    represented as pointers to structs where the first component is the number
    of elements in the following array.
 
    The trickiest part of this project will be satisfying LLVM's rudimentary type
    system. Recall that global arrays in LLVMlite need to be declared with their
-   length in the type to statically allocate the right amount of memory. The 
+   length in the type to statically allocate the right amount of memory. The
    global strings and arrays you emit will therefore have a more specific type
    annotation than the output of cmp_rty. You will have to carefully bitcast
    gids to satisfy the LLVM type checker.
@@ -151,7 +151,7 @@ let gensym : string -> string =
   let c = ref 0 in
   fun (s : string) -> incr c ; Printf.sprintf "_%s%d" s !c
 
-(* Amount of space an Oat type takes when stored in the stack, in bytes.  
+(* Amount of space an Oat type takes when stored in the stack, in bytes.
    Note that since structured values are manipulated by reference, all
    Oat values take 8 bytes on the stack.
 *)
@@ -172,18 +172,18 @@ let oat_alloc_array (t : Ast.ty) (size : Ll.operand) : Ll.ty * operand * stream 
 
 (* Compiles an expression exp in context c, outputting the Ll operand that will
    recieve the value of the expression, and the stream of instructions
-   implementing the expression. 
+   implementing the expression.
 
    Tips:
    - use the provided cmp_ty function!
 
-   - string literals (CStr s) should be hoisted. You'll need to bitcast the 
+   - string literals (CStr s) should be hoisted. You'll need to bitcast the
      resulting gid to (Ptr I8)
 
    - use the provided "oat_alloc_array" function to implement literal arrays
      (CArr) and the (NewArr) expressions
 
-   - we found it useful to write a helper function 
+   - we found it useful to write a helper function
      cmp_exp_as : Ctxt.t -> Ast.exp node -> Ll.ty -> Ll.operand * stream
      that compiles an expression and optionally inserts a bitcast to the
      desired Ll type. This is useful for dealing with OAT identifiers that
@@ -193,7 +193,7 @@ let oat_alloc_array (t : Ast.ty) (size : Ll.operand) : Ll.ty * operand * stream 
 let rec cmp_exp (c : Ctxt.t) (exp : Ast.exp node) : Ll.ty * Ll.operand * stream =
   failwith "cmp_exp unimplemented"
 
-(* Compile a statement in context c with return typ rt. Return a new context, 
+(* Compile a statement in context c with return typ rt. Return a new context,
    possibly extended with new local bindings, and the instruction stream
    implementing the statement.
 
@@ -205,9 +205,9 @@ let rec cmp_exp (c : Ctxt.t) (exp : Ast.exp node) : Ll.ty * Ll.operand * stream 
    - for local variable declarations, you will need to emit Allocas in the
      entry block of the current function using the E() constructor.
 
-   - don't forget to add a bindings to the context for local variable 
+   - don't forget to add a bindings to the context for local variable
      declarations
-   
+
    - you can avoid some work by translating For loops to the corresponding
      While loop, building the AST and recursively calling cmp_stmt
 
@@ -232,7 +232,7 @@ and cmp_block (c : Ctxt.t) (rt : Ll.ty) (stmts : Ast.block) : stream =
        (c, []) stmts
 
 (* Adds each function identifer to the context at an
-   appropriately translated type.  
+   appropriately translated type.
 
    NOTE: The Gid of a function is just its source name
 *)
@@ -243,11 +243,11 @@ let cmp_function_ctxt (c : Ctxt.t) (p : Ast.prog) : Ctxt.t =
           Ctxt.add c fname (cmp_ty ft, Gid fname) | _ -> c )
     c p
 
-(* Populate a context with bindings for global variables 
+(* Populate a context with bindings for global variables
    mapping OAT identifiers to LLVMlite gids and their types.
 
    Only a small subset of OAT expressions can be used as global initializers
-   in well-formed programs. (The constructors starting with C). 
+   in well-formed programs. (The constructors starting with C).
 *)
 let cmp_global_ctxt (c : Ctxt.t) (p : Ast.prog) : Ctxt.t = failwith "cmp_global_ctxt unimplemented"
 
@@ -260,7 +260,7 @@ let cmp_global_ctxt (c : Ctxt.t) (p : Ast.prog) : Ctxt.t = failwith "cmp_global_
    2. Store the function arguments in their corresponding alloca'd stack slot
    3. Extend the context with bindings for function variables
    3. Compile the body of the function using cmp_block
-   4. Use cfg_of_stream to produce a LLVMlite cfg from 
+   4. Use cfg_of_stream to produce a LLVMlite cfg from
  *)
 let cmp_fdecl (c : Ctxt.t) (f : Ast.fdecl node) : Ll.fdecl * (Ll.gid * Ll.gdecl) list =
   failwith "cmp_fdecl not implemented"

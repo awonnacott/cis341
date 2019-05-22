@@ -11,4 +11,4 @@ int program(int argc, string[] argv) {
   print_string(string_of_int(fact(5)));
   return 0;
 }
-  
+

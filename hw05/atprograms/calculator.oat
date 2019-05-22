@@ -24,7 +24,7 @@ int[] push_stack(int[] s, int v) {
   var cur_index = 2 + s[1];
   s[cur_index] = v;
   s[1] = cur_index - 1;
-  
+
   return maybe_new_stack(s);
 }
 

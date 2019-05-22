@@ -13,6 +13,6 @@ int f(int x, int y) {
 int program (int argc, string[] argv) {
   var x = 3;
   var y = 3;
-  
+
   return f(x, y)+i;
 }

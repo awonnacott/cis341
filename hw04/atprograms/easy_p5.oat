@@ -8,7 +8,7 @@ global arr3 = string[]{"String1", "String2", "String3"};
 
 global arr4 = string[][]
   {
-   string[]{"String00","String01"}, 
-   string[]{"String10","String11"}, 
+   string[]{"String00","String01"},
+   string[]{"String10","String11"},
    string[]{"String20","String21"}
   };

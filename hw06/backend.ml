@@ -164,14 +164,14 @@ let prog_of_x86stream : x86stream -> X86.prog =
 (* locals and layout -------------------------------------------------------- *)
 
 (* The layout for this version of the backend is slightly more complex
-   than we saw earlier.  It consists of 
+   than we saw earlier.  It consists of
      - uid_loc a function that maps LL uids to their target x86 locations
      - the number of bytes to be allocated on the stack due to spills
 *)
 
 type layout = {uid_loc: uid -> Alloc.loc; spill_bytes: int}
 
-(* The liveness analysis will return the set of variables that are live at 
+(* The liveness analysis will return the set of variables that are live at
    a given program point, as specified by the uid. *)
 type liveness = uid -> UidSet.t
 
@@ -181,7 +181,7 @@ let caller_save : LocSet.t =
   |> List.map (fun r -> Alloc.LReg r)
   |> LocSet.of_list
 
-(* excludes Rbp, Rsp, and Rip, since they have special meanings 
+(* excludes Rbp, Rsp, and Rip, since they have special meanings
    The current backend does not use callee-save registers except in
    the special case of through registers.  It uses R15 as a function
    pointer, but ensures that it is saved/restored.
@@ -255,12 +255,12 @@ let emit_mov (src : X86.operand) (dst : X86.operand) : x86stream =
 
 (* Compiles a parallel move instruction into a sequence of moves, pushing and
    popping values to the stack when there are not enough registers to directly
-   shuffle the sources to the targets. It uses liveness information to simply 
+   shuffle the sources to the targets. It uses liveness information to simply
    not move dead operands.
 
-   The PMov instruction is used at the beginning of a function declaration to 
-   move the incoming arguments to their destination uids/registers.  
-   compile_pmov is directly used when compiling a function call to move 
+   The PMov instruction is used at the beginning of a function declaration to
+   move the incoming arguments to their destination uids/registers.
+   compile_pmov is directly used when compiling a function call to move
    the arguments.
 
    Inputs:
@@ -270,7 +270,7 @@ let emit_mov (src : X86.operand) (dst : X86.operand) : x86stream =
    Note: the destinations are assumed to be distinct, but might also be sources
 
    Outputs:
-      an x86 instruction stream that (efficiently) moves each src to its 
+      an x86 instruction stream that (efficiently) moves each src to its
       destination
 
    The algorithm works like this:
@@ -279,16 +279,16 @@ let emit_mov (src : X86.operand) (dst : X86.operand) : x86stream =
 
    Then do a recursive algorithm that processes the remaining list of triples:
       2. See if there are triples of the form (dest, type, src) where dest
-         is not also source in some other triple.  For each such triple we can 
-         directly move the src to its dest (which won't "clobber" some other 
+         is not also source in some other triple.  For each such triple we can
+         directly move the src to its dest (which won't "clobber" some other
          source).  These are the "ready" moves.
 
       3. If there are no "ready" moves to make (i.e. every destination is also
-         a source of some other triple), we pick the first triple, push its 
+         a source of some other triple), we pick the first triple, push its
          src to the stack, recursively process the remaining list, and then
          pop the stack into the destination.
 
-        ol          ol'          2           2             3           2         
+        ol          ol'          2           2             3           2
       x <- y      x <- y       w <- x     MOV x, w      MOV x, w     MOV x, w
       y <- y  ==>         ==>  ------ ==> -------- ==>  PUSH y   ==> PUSH y
       w <- x      w <- x       x <- y     x <- y        y <- z       MOV z, y
@@ -523,7 +523,7 @@ let compile_fbody tdecls (af : Alloc.fbody) : x86stream =
         @@ (outstream >@ compile_getelementptr tdecls at o os >:: I Asm.(Movq, [~%Rax; co (Loc x)]))
     | (Call (x, t, fo, os), live) :: rest ->
         (* Corner: fo is Loc (LReg r) and r is used in the calling conventions.
-         Then we use R15 to hold the function pointer, saving and restoring it, 
+         Then we use R15 to hold the function pointer, saving and restoring it,
          since it is a callee-save register.                                  *)
         let fptr_op, init_fp, restore_fp =
           match fo with
@@ -593,7 +593,7 @@ let fold_fdecl (f_param : 'a -> uid * Ll.ty -> 'a) (f_lbl : 'a -> lbl -> 'a)
 
 (* no layout ---------------------------------------------------------------- *)
 (* This register allocation strategy puts all uids into stack
-   slots. It does not use liveness information.  
+   slots. It does not use liveness information.
 *)
 let insn_assigns : Ll.insn -> bool = function
   | Ll.Call (Ll.Void, _, _) | Ll.Store _ ->
@@ -615,13 +615,13 @@ let no_reg_layout (f : Ll.fdecl) (_ : liveness) : layout =
   {uid_loc= (fun x -> List.assoc x lo); spill_bytes= 8 * n_stk}
 
 (* greedy layout ------------------------------------------------------------ *)
-(* This example register allocation strategy puts the first few uids in 
+(* This example register allocation strategy puts the first few uids in
    available registers and spills the rest. It uses liveness information to
    recycle available registers when their current value becomes dead.
 
    There is a corner case where we might have to try to allocate a location
    but there is a live variable who's location is unknown!  (This can happen
-   in a loop... see gcd_euclidean.ll for an example.)  In that case, we 
+   in a loop... see gcd_euclidean.ll for an example.)  In that case, we
    should just spill attempt to avoid conflicts.
 *)
 
@@ -667,31 +667,31 @@ let greedy_layout (f : Ll.fdecl) (live : liveness) : layout =
 (* TASK: Implement a (correct) register allocation strategy that
    outperforms the greedy layout strategy given above, assuming that
    the liveness information is calculated using the dataflow analysis
-   from liveness.ml.  
+   from liveness.ml.
 
-   Your implementation does _not_ necessarily have to do full-blown 
-   coalescing graph coloring as described in lecture.  You may choose 
-   a simpler strategy.  In particular, a non-coalescing graph coloring 
-   algorithm that uses some simple preference heuristics should be 
+   Your implementation does _not_ necessarily have to do full-blown
+   coalescing graph coloring as described in lecture.  You may choose
+   a simpler strategy.  In particular, a non-coalescing graph coloring
+   algorithm that uses some simple preference heuristics should be
    able to beat the greedy linear-scan algorithm.
 
-   To measure the effectiveness of your strategy, our testing infrastructure 
+   To measure the effectiveness of your strategy, our testing infrastructure
    uses a simple heuristic to compare it with the 'greedy' strategy given above.
-   
+
    QUALITY HEURISTIC:
    The 'quality score' of a register assignment for an x86 program is based
-   on two things: 
+   on two things:
      - the total number of memory accesses, which is the sum of:
-          - the number of Ind2 and Ind3 operands 
+          - the number of Ind2 and Ind3 operands
           - the number of Push and Pop instructions
 
      - size(p) the total number of instructions in the x86 program
 
-   Your goal for register allocation should be to minimize the number of 
+   Your goal for register allocation should be to minimize the number of
    memory operations and, secondarily, the overall size of the program.
 
-   registers.ml provides some helper functions that you can use to 
-   get the size and total number of memory operations in a program.  It 
+   registers.ml provides some helper functions that you can use to
+   get the size and total number of memory operations in a program.  It
    also provides a function that computes a histogram of the register usage,
    which can be helpful when testing your register allocator.
 
@@ -702,11 +702,11 @@ let greedy_layout (f : Ll.fdecl) (live : liveness) : layout =
      otherwise greedy wins.
 
    Hints:
-    - The Datastructures file provides a UidGraph that can be used to 
+    - The Datastructures file provides a UidGraph that can be used to
       create your interference graph.
 
     - It may be useful to understand how this version of the compiler
-      deals with function calls (see compile_pmov) and what the 
+      deals with function calls (see compile_pmov) and what the
       greedy allocator does.
 
     - The compiler uses Rax and Rcx in its code generation, so they
@@ -714,7 +714,7 @@ let greedy_layout (f : Ll.fdecl) (live : liveness) : layout =
 
       . other caller_save registers are freely available
 
-      . if you want to use callee_save registers you might have to 
+      . if you want to use callee_save registers you might have to
         adjust the code generated by compile_fdecl to save/restore them.
 *)
 module UidGraph = Datastructures.UidGraph

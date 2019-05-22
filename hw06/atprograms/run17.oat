@@ -8,5 +8,5 @@ int program (int argc, string[] argv) {
     }
   }
   var b = a;
-  return b[2][2]; 
+  return b[2][2];
 }

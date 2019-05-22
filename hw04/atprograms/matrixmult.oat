@@ -12,11 +12,11 @@ int program(int argc, string[] argv)
 
    matrix_Mult(a, b, c);
    prnNx4(c, 2);
-   
+
    matrix_MultAlt(a, b, c); /* alternate form that calls dot3 */
-   prnNx4(c, 2);  
+   prnNx4(c, 2);
    return 0;
-} 
+}
 
 /* http://www.edcc.edu/faculty/paul.bladek/Cmpsc142/matmult.htm */
 void matrix_Mult(int[][] a1, int [][] a2, int [][] a3)
@@ -62,7 +62,7 @@ void prnNx4 (int[][] ar, int n)
             print_int(ar[i][j]);
             print_string (" ");
         }
-        print_string("\t"); 
+        print_string("\t");
     }
     return;
 }

@@ -9,13 +9,13 @@ string string_concat (string str1, string str2) {
   var i = 0;
   for(var j=0; j<len1; j=j+1;) {
     arr3[i] = arr1[j];
-    i=i+1; 
+    i=i+1;
   }
   for(var j=0; j<len2; j=j+1;) {
     arr3[i] = arr2[j];
     i=i+1;
   }
-  return string_of_array (arr3);  
+  return string_of_array (arr3);
 }
 
 int program (int argc, string[] argv) {

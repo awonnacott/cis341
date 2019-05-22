@@ -29,7 +29,7 @@ end
 type fact = SymPtr.t UidM.t
 
 (* flow function across Ll instructions ------------------------------------- *)
-(* TASK: complete the flow function for alias analysis. 
+(* TASK: complete the flow function for alias analysis.
 
    - After an alloca, the defined UID is the unique name for a stack slot
    - A pointer returned by a load, call, bitcast, or GEP may be aliased
@@ -79,10 +79,10 @@ module Solver = Solver.Make (Fact) (Graph)
 
 (* expose a top-level analysis operation ------------------------------------ *)
 let analyze (g : Cfg.t) : Graph.t =
-  (* the analysis starts with every node set to bottom (the map of every uid 
+  (* the analysis starts with every node set to bottom (the map of every uid
      in the function to UndefAlias *)
   let init l = UidM.empty in
-  (* the flow into the entry node should indicate that any pointer parameter 
+  (* the flow into the entry node should indicate that any pointer parameter
      to the function may be aliased *)
   let alias_in =
     List.fold_right

@@ -9,5 +9,5 @@ int program (int argc, string[] argv) {
   var b = new int[f()];
   b[0] = f();
   b[1] = f();
-  return a + b[0] + b[1]; 
+  return a + b[0] + b[1];
 }

@@ -1,6 +1,7 @@
 INCLUDES= util,x86,grading,ll
 LIBS = unix,str
 PKGS = num
+CFLAGS := -w,+a-4-26-27-32-33-35-39-40-42-45
 SUBMIT := solver.ml alias.ml backend.ml dce.ml constprop.ml
 
 .PHONY: all test clean format
@@ -11,10 +12,10 @@ test: all
 	./main.native --test
 
 main.native:
-	ocamlbuild -cflags -w,+a-4-40-42 -Is $(INCLUDES) -libs $(LIBS) -pkg $(PKGS) main.native -use-menhir -yaccflag --explain
+	ocamlbuild -cflags $(CFLAGS) -Is $(INCLUDES) -libs $(LIBS) -pkg $(PKGS) main.native -use-menhir -yaccflag --explain
 
 printanalysis.native:
-	ocamlbuild -cflags -w,+a-4-40-42 -Is $(INCLUDES) -libs $(LIBS) -pkg $(PKGS) printanalysis.native -use-menhir -yaccflag --explain
+	ocamlbuild -cflags $(CFLAGS) -Is $(INCLUDES) -libs $(LIBS) -pkg $(PKGS) printanalysis.native -use-menhir -yaccflag --explain
 
 clean:
 	ocamlbuild -clean

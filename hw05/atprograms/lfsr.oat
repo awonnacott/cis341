@@ -22,7 +22,7 @@ int program(int argc, string[] argv) {
     /* Initialize the working register */
     var lfsr_register = new bool[lfsr_length]{i->false};
     for (var i=0; i < lfsr_length; i=i+1;) {
-      lfsr_register[i] = lfsr_init_values[i]; 
+      lfsr_register[i] = lfsr_init_values[i];
     }
 
     /* Do the computations */

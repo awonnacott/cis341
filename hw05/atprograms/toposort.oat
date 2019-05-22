@@ -2,7 +2,7 @@
 /* CIS341 Spring 2017 */
 
 /* 0 is white, 1 is gray, 2 is black */
-global color = int[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; 
+global color = int[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 global startTimes = int[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 global finishTimes = int[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 global topoSort = int[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -10,7 +10,7 @@ global numVertices = 16;
 global index = 15;
 
 void dfs(int[][] adj) {
-	
+
 	for (var i = 0; i < numVertices; i=i+1;) {
 		if (color[i] == 0) {
 			dfsHelper(adj, i, 0);

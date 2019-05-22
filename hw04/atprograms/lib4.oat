@@ -1,4 +1,4 @@
-global str = "hello"; 
+global str = "hello";
 
 int program (int argc, string[] argv) {
   var arr = array_of_string (str);
@@ -7,5 +7,5 @@ int program (int argc, string[] argv) {
     s = s + arr[i];
   }
   print_int(s);
-  return s; 
+  return s;
 }

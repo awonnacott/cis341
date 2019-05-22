@@ -16,7 +16,7 @@ let cp (g : Cfg.t) : Cfg.t =
 let rec pass n (g : Cfg.t) = if n <= 0 then g else pass (n - 1) (g |> dce |> cp)
 
 (* optimize an fdecl -------------------------------------------------------- *)
-(* runs (two) passes of dce followed by constant propagation on the supplied 
+(* runs (two) passes of dce followed by constant propagation on the supplied
    LL IR fdecl.                                                               *)
 let opt_fdecl ((gid, fdecl) : Ll.gid * Ll.fdecl) : Ll.gid * Ll.fdecl =
   let g = pass 2 (Cfg.of_ast fdecl) in

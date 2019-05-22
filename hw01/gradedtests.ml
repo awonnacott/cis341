@@ -18,9 +18,9 @@ let part1_tests : suite =
       ( "Problem1-1"
       , 3
       , [ ("pieces", assert_eq pieces 8)
-        ; (* assert_eqf f v 
-   * asserts that applying a unit-accepting function f 
-   * returns the value v *)
+        ; (* assert_eqf f v
+           * asserts that applying a unit-accepting function f
+           * returns the value v *)
           ("cube0", assert_eqf (fun () -> cube 0) 0)
         ; ("cube1", assert_eqf (fun () -> cube 1) 1)
         ; ("cube2", assert_eqf (fun () -> cube 2) 8)

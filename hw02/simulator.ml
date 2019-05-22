@@ -2,7 +2,7 @@
 (* Author: Steve Zdancewic  *)
 (* Modified by: Zak Kincaid *)
 
-(* See the documentation in the X86lite specification, available on the 
+(* See the documentation in the X86lite specification, available on the
    course web pages, for a detailed explanation of the instruction
    semantics.
 *)
@@ -165,7 +165,7 @@ let sbytes_of_data : data -> sbyte list = function
   | Quad (Lbl _) ->
       invalid_arg "sbytes_of_data: tried to serialize a label!"
 
-(* It might be useful to toggle printing of intermediate states of your 
+(* It might be useful to toggle printing of intermediate states of your
    simulator. *)
 let debug_simulator = ref false
 
@@ -177,11 +177,11 @@ let interp_cnd {fo; fs; fz} : cnd -> bool = fun x -> failwith "interp_cnd unimpl
 let map_addr (addr : quad) : int option = failwith "map_addr not implemented"
 
 (* Simulates one step of the machine:
-    - fetch the instruction at %rip
-    - compute the source and/or destination information from the operands
-    - simulate the instruction semantics
-    - update the registers and/or memory appropriately
-    - set the condition flags
+   - fetch the instruction at %rip
+   - compute the source and/or destination information from the operands
+   - simulate the instruction semantics
+   - update the registers and/or memory appropriately
+   - set the condition flags
 *)
 let step (m : mach) : unit = failwith "step unimplemented"
 
@@ -214,27 +214,27 @@ exception Redefined_sym of lbl
    - compute the size of each segment
       Note: the size of an Asciz string section is (1 + the string length)
 
-   - resolve the labels to concrete addresses and 'patch' the instructions to 
+   - resolve the labels to concrete addresses and 'patch' the instructions to
      replace Lbl values with the corresponding Imm values.
 
    - the text segment starts at the lowest address
    - the data segment starts after the text segment
 
-  HINT: List.fold_left and List.fold_right are your friends.
- *)
+   HINT: List.fold_left and List.fold_right are your friends.
+*)
 let assemble (p : prog) : exec = failwith "assemble unimplemented"
 
-(* Convert an object file into an executable machine state. 
-    - allocate the mem array
-    - set up the memory state by writing the symbolic bytes to the 
-      appropriate locations 
-    - create the inital register state
-      - initialize rip to the entry point address
-      - initializes rsp to the last word in memory 
-      - the other registers are initialized to 0
-    - the condition code flags start as 'false'
+(* Convert an object file into an executable machine state.
+   - allocate the mem array
+   - set up the memory state by writing the symbolic bytes to the
+      appropriate locations
+   - create the inital register state
+   - initialize rip to the entry point address
+   - initializes rsp to the last word in memory
+   - the other registers are initialized to 0
+   - the condition code flags start as 'false'
 
-  Hint: The Array.make, Array.blit, and Array.of_list library functions 
-  may be of use.
+   Hint: The Array.make, Array.blit, and Array.of_list library functions
+   may be of use.
 *)
 let load {entry; text_pos; data_pos; text_seg; data_seg} : mach = failwith "load unimplemented"

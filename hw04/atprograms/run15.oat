@@ -16,5 +16,5 @@ int program (int argc, string[] argv) {
   var arr0 = new int[][]{new int[]{0*0, 0*1, 0*2},
                          new int[]{1*0, 1*1, 1*2},
                          new int[]{2*0, 2*1, 2*2}};
-  return arr[3][4] + a[1][2] + f(arr0) + g(4); 
+  return arr[3][4] + a[1][2] + f(arr0) + g(4);
 }

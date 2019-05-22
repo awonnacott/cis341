@@ -37,6 +37,6 @@ let mk_lex_range (p1:position) (p2:position) : t =
   mk_range p1.pos_fname (pos_of_lexpos p1) (pos_of_lexpos p2)
 
 (* Expose the lexer state as a Range.t value *)
-let lex_range lexbuf : t = 
+let lex_range lexbuf : t =
   mk_lex_range (lexeme_start_p lexbuf) (lexeme_end_p lexbuf)
-    
+

@@ -53,7 +53,7 @@ Queue newEmptyQueue() {
 
 
 bool isEmpty(Queue q) {
-	return q.size == 0;	
+	return q.size == 0;
 }
 
 void printNeighbors(Node n) {
@@ -145,30 +145,30 @@ int program (int argc, string[] argv) {
 	addNeighbor(there, should);
 	addNeighbor(there, be);
 	addNeighbor(there, better);
-	
+
 	addNeighbor(should, there);
 	addNeighbor(should, food);
-	
+
 	addNeighbor(be, there);
 	addNeighbor(be, better);
-	
+
 
 	addNeighbor(better, there);
 	addNeighbor(better, be);
 	addNeighbor(better, options);
-	
+
 	addNeighbor(food, should);
 	addNeighbor(food, options);
-	
+
 	addNeighbor(options, food);
 	addNeighbor(options, better);
 	addNeighbor(options, on);
 	addNeighbor(options, campus);
-	
+
 	addNeighbor(on, options);
-	
+
 	addNeighbor(campus, options);
-	
+
 	bfs(there);
-	return 0; 	
+	return 0;
 }

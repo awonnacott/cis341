@@ -20,7 +20,7 @@ type bid = GlobId of gid
 type ptr = ty * bid * idx list
 
 (* "Simple" or stack values  *)
-type sval = 
+type sval =
   | VUndef
   | VInt of int64
   | VPtr of ptr
@@ -85,7 +85,7 @@ let string_of_sval (sv:sval) : string =
   | VUndef -> "undef"
   | VInt x -> Int64.to_string x
   | VPtr p -> string_of_ptr p
-      
+
 let rec string_of_mval (mv:mval) : string =
   "[" ^ (mapcat " " string_of_mtree mv) ^ "]"
 
@@ -119,9 +119,9 @@ let interp_bop (b:bop) (v1:sval) (v2:sval) : sval =
     | Lshr -> fun i j -> shift_right_logical i @@ to_int j
     | Ashr -> fun i j -> shift_right i @@ to_int j
   in VInt (f i j)
-                                               
+
 let interp_cnd (c:cnd) (v1:sval) (v2:sval) =
-  let f = match c with 
+  let f = match c with
     | Eq -> (=) | Ne -> (<>) | Slt -> (<)
     | Sle -> (<=) | Sgt -> (>) | Sge -> (>=)
   in
@@ -145,7 +145,7 @@ let rec interp_operand (nt:tid -> ty) (locs:locals) (ty:ty) (o:operand) : sval =
   | Ptr ty, Gid g -> VPtr (ty, GlobId g, [0])
   | _, Id u       -> locs u
   | Namedt id, o  -> interp_operand nt locs (nt id) o
-  | _             -> failwith @@ "interp_operand: malformed operand " ^ soo o ^ ":" ^ sot ty 
+  | _             -> failwith @@ "interp_operand: malformed operand " ^ soo o ^ ":" ^ sot ty
 
 
 (* Some utility functions *)
@@ -203,25 +203,25 @@ let rec store_idxs (m:mval) (idxs:idx list) (mt:mtree) : mval =
 let load_bid (c:config) (bid:bid) : mval =
   match bid with
   | NullId -> raise NullPtrDeref
-  | HeapId mid -> 
-     (try List.assoc mid c.heap 
+  | HeapId mid ->
+     (try List.assoc mid c.heap
       with Not_found -> raise UseAfterFree)
   | GlobId gid ->
-     (try List.assoc gid c.globals 
+     (try List.assoc gid c.globals
       with Not_found -> failwith "Load: bogus gid")
   | StckId fid ->
-     (try List.assoc fid c.stack 
+     (try List.assoc fid c.stack
       with Not_found -> raise UseAfterFree)
 
 
-let load_ptr (c:config) (_, bid, idxs:ptr) : mtree = 
+let load_ptr (c:config) (_, bid, idxs:ptr) : mtree =
   load_idxs (load_bid c bid) idxs
 
 let store_ptr (c:config) (_, bid, idxs:ptr) (mt:mtree) : config =
   let mval = load_bid c bid in
   match bid with
   | NullId -> raise NullPtrDeref
-  | HeapId mid -> 
+  | HeapId mid ->
      let mval' = store_idxs mval idxs mt in
      let heap = replace_assoc c.heap mid mval' in
      {c with heap}
@@ -237,10 +237,10 @@ let store_ptr (c:config) (_, bid, idxs:ptr) (mt:mtree) : config =
 
 (* Tag and GEP implementation *)
 let effective_tag (nt:tid -> ty) (tag, _, idxs :ptr) : ty =
-  let rec loop tag idxs = 
+  let rec loop tag idxs =
     match tag, idxs with
     | t, []                  -> t
-    | Struct ts,    i::idxs' -> if List.length ts <= i 
+    | Struct ts,    i::idxs' -> if List.length ts <= i
                                 then failwith "effective_tag: index oob of struct"
                                 else loop (List.nth ts i) idxs'
     | Array (n, t), i::idxs' -> loop t idxs' (* Don't check if OOB! *)
@@ -271,7 +271,7 @@ let legal_gep (nt:tid -> ty) (sty:ty) (tag:ty) : bool =
     | t -> [t]
   in
   is_prefix (flatten_ty @@ ptrtoi8 sty) (flatten_ty @@ ptrtoi8 tag)
-  
+
 let gep_ptr (nt:tid -> ty) (ot:ty) (p:ptr) (idxs':idx list) : sval =
   if not (legal_gep nt ot @@ effective_tag nt p) then VUndef else
     match p with
@@ -282,7 +282,7 @@ let gep_ptr (nt:tid -> ty) (ot:ty) (p:ptr) (idxs':idx list) : sval =
 
 (* LLVMlite reference interpreter *)
 let interp_prog {tdecls; gdecls; fdecls} (args:string list) : sval =
-  
+
   let globals = List.map (fun (g,gd) -> g,mval_of_gdecl gd) gdecls in
 
   let nt (id:tid) : ty =
@@ -292,27 +292,27 @@ let interp_prog {tdecls; gdecls; fdecls} (args:string list) : sval =
 
   let interp_op = interp_operand nt in
 
-  let next_id : unit -> fid = 
+  let next_id : unit -> fid =
     let c = ref 0 in
     fun () -> c := succ !c; !c
   in
 
   (* Global identifiers that will be interpreted as external functions *)
-  let runtime_fns = [ "ll_puts"; "ll_strcat"; "ll_ltoa" ] 
+  let runtime_fns = [ "ll_puts"; "ll_strcat"; "ll_ltoa" ]
   in
 
   (* External function implementation *)
-  let runtime_call (t:ty) (fn:gid) (args:sval list) (c:config) : config * sval = 
+  let runtime_call (t:ty) (fn:gid) (args:sval list) (c:config) : config * sval =
     let load_strptr p = match load_ptr c p with
       | MStr s -> s
       | _ -> failwith "runtime_call: non string-ptr arg"
     in
     match t, fn, args with
-    | Void, "ll_puts", [VPtr p] -> 
+    | Void, "ll_puts", [VPtr p] ->
        let s = load_strptr p in
-       print_endline s; 
+       print_endline s;
        c, VUndef
-    | Ptr t, "ll_strcat", [VPtr ps1; VPtr ps2] -> 
+    | Ptr t, "ll_strcat", [VPtr ps1; VPtr ps2] ->
        let s1 = load_strptr ps1 in
        let s2 = load_strptr ps2 in
        let mid = next_id () in
@@ -338,7 +338,7 @@ let interp_prog {tdecls; gdecls; fdecls} (args:string list) : sval =
        let vr = interp_bop b v1 v2 in
        let locs' = update locs u vr in
        interp_cfg ({k with insns}, blocks) locs' c
-       
+
     | (u, Icmp (cnd, t, o1, o2))::insns, _ ->
        let v1 = interp_op locs t o1 in
        let v2 = interp_op locs t o2 in
@@ -349,7 +349,7 @@ let interp_prog {tdecls; gdecls; fdecls} (args:string list) : sval =
     | (u, Alloca ty)::insns, _ ->
        begin match c.stack with
        | [] -> failwith "stack empty"
-       | (fid,frame)::stack' -> 
+       | (fid,frame)::stack' ->
           let ptr = VPtr (ty, StckId fid, [List.length frame]) in
           let stack = (fid, frame @ [MWord VUndef])::stack' in
           let locs' = update locs u ptr in
@@ -359,8 +359,8 @@ let interp_prog {tdecls; gdecls; fdecls} (args:string list) : sval =
     | (u, Load (Ptr t, o))::insns, _ ->
        let mt = match interp_op locs (Ptr t) o with
          | VPtr p ->
-            if effective_tag nt p <> t 
-            then raise IncompatTagDeref 
+            if effective_tag nt p <> t
+            then raise IncompatTagDeref
             else load_ptr c p
          | VUndef -> raise UndefPtrDeref
          | VInt _ -> failwith "non-ptr arg for load"
@@ -378,14 +378,14 @@ let interp_prog {tdecls; gdecls; fdecls} (args:string list) : sval =
        let vd = interp_op locs (Ptr t) od in
        let c' = match vd with
          | VPtr p ->
-            if effective_tag nt p <> t 
-            then raise IncompatTagDeref 
+            if effective_tag nt p <> t
+            then raise IncompatTagDeref
             else store_ptr c p (MWord vs)
          | VUndef -> raise UndefPtrDeref
          | VInt _ -> failwith "non-vptr arg for load"
        in
        interp_cfg ({k with insns}, blocks) locs c'
-       
+
     | (u, Call (t, ofn, ato))::insns, _ ->
        let ats, aos = List.split ato in
        let ft = Ptr (Fun (ats, t)) in
@@ -414,34 +414,34 @@ let interp_prog {tdecls; gdecls; fdecls} (args:string list) : sval =
          | VPtr p -> gep_ptr nt t p idxs'
          | VUndef -> VUndef
          | VInt _ -> failwith "non-ptr arg for gep"
-       in           
+       in
        let locs' = update locs u v' in
        interp_cfg ({k with insns}, blocks) locs' c
 
-    | [], (_, Ret (_, None)) -> 
+    | [], (_, Ret (_, None)) ->
        {c with stack = List.tl c.stack}, VUndef
 
-    | [], (_, Ret (t, Some o)) -> 
+    | [], (_, Ret (t, Some o)) ->
        {c with stack = List.tl c.stack}, interp_op locs t o
 
-    | [], (_, Br l) -> 
+    | [], (_, Br l) ->
        let k' = List.assoc l blocks in
        interp_cfg (k', blocks) locs c
 
-    | [], (_, Cbr (o, l1, l2)) -> 
+    | [], (_, Cbr (o, l1, l2)) ->
        let v = interp_op locs I1 o in
        let l' = if interp_i1 v then l1 else l2 in
        let k' = List.assoc l' blocks in
        interp_cfg (k', blocks) locs c
 
-    | (u,i)::_, _ ->  failwith @@ "interp_cfg: invalid instruction \"" 
+    | (u,i)::_, _ ->  failwith @@ "interp_cfg: invalid instruction \""
                                   ^ string_of_insn i ^ "\" at %" ^ u
 
   and interp_call (ty:ty) (fn:gid) (args:sval list) (c:config) : config * sval =
     if List.mem fn runtime_fns
     then runtime_call ty fn args c
     else
-    let {f_param; f_cfg} = try List.assoc fn fdecls 
+    let {f_param; f_cfg} = try List.assoc fn fdecls
                        with Not_found -> failwith @@ "interp_call: undefined function " ^ fn
     in
     if List.(length f_param <> length args) then
@@ -452,7 +452,7 @@ let interp_prog {tdecls; gdecls; fdecls} (args:string list) : sval =
     interp_cfg f_cfg locs {c with stack}
   in
 
-  let mkarg a (p,h) = 
+  let mkarg a (p,h) =
     let id = next_id () in
     VPtr (I8, HeapId id, [0])::p, (id, [MStr a])::h
   in

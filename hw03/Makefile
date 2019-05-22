@@ -1,17 +1,18 @@
 DIRS := util,grading,ll,x86
 PKGS := num
 LIBS := unix,str
-SUBMIT := simulator.ml studenttests.ml
+CFLAGS := -w,+a-4-26-27-32-33-35-39-40-42-45
+SUBMIT := backend.ml studenttests.ml
 
 .PHONY: all test clean format
 
 all: main.native
 
 main.native: $(SUBMIT) $(OTHER)
-	ocamlbuild -cflags -w,+a-4-42 -Is $(DIRS) -pkg $(PKGS) -libs $(LIBS) -use-menhir main.native
+	ocamlbuild -cflags $(CFLAGS) -Is $(DIRS) -pkg $(PKGS) -libs $(LIBS) -use-menhir main.native
 
 main.byte: $(SUBMIT) $(OTHER)
-	ocamlbuild -cflags -w,+a-4-42 -Is $(DIRS) -pkg $(PKGS) -libs $(LIBS) -use-menhir main.byte
+	ocamlbuild -cflags $(CFLAGS) -Is $(DIRS) -pkg $(PKGS) -libs $(LIBS) -use-menhir main.byte
 
 test: all
 	./main.native --test
@@ -23,5 +24,5 @@ clean:
 llstudents.zip: cinterop.c studenttests.ml llstudents/*
 	zip llstudents cinterop.c studenttests.ml llstudents/*
 
-format: simulator.ml
-	ocamlformat -i --ocp-indent-compat -m 100 simulator.ml
+format: backend.ml
+	ocamlformat -i --ocp-indent-compat -m 100 backend.ml

@@ -29,7 +29,7 @@ void sink (Heap heap, int index) {
 			var parent = heap.values[index];
 			heap.values[index] = heap.values[j];
 			heap.values[j] = parent;
-			index = j;  
+			index = j;
 		}
 	}
 	return;
@@ -50,7 +50,7 @@ int extract_min (Heap heap) {
 	var min = heap.values[1];
 	heap.values[1] = heap.values[heap.size];
 	heap.values[heap.size] = min;
-	heap.size = heap.size - 1; 
+	heap.size = heap.size - 1;
 	sink(heap, 1);
 	return min;
 }

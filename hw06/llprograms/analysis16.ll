@@ -19,7 +19,7 @@ continue_loop:
   %7 = load i64, i64* %1
   %8 = icmp sgt i64 %7, %5
   br i1 %8, label %if, label %else
-  
+
 if:
   %9 = sub i64 %7, %5
   store i64 %9, i64* %1

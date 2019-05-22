@@ -3,11 +3,11 @@
 open Datastructures
 
 (* dataflow analysis graph signature ---------------------------------------- *)
-(* Interface for dataflow graphs structured in a way to facilitate 
-   the general iterative dataflow analysis algorithm.                         
+(* Interface for dataflow graphs structured in a way to facilitate
+   the general iterative dataflow analysis algorithm.
 
    The AsGraph functor in cfg.ml provides an implementation of this
-   DFA_GRAPH signature that converts an LL IR control-flow graph to 
+   DFA_GRAPH signature that converts an LL IR control-flow graph to
    this representation.
 
    NOTE: The direction of the analysis is goverened by how preds and
@@ -28,7 +28,7 @@ module type DFA_GRAPH = sig
 
   type node = NodeS.elt
 
-  (* dataflow facts associated with the out-edges of the nodes in 
+  (* dataflow facts associated with the out-edges of the nodes in
        this graph *)
   type fact
 
@@ -42,8 +42,8 @@ module type DFA_GRAPH = sig
   val nodes : t -> NodeS.t
 
   (* the flow function:
-       given a graph node and input fact, compute the resulting fact on the 
-       output edge of the node                                                
+       given a graph node and input fact, compute the resulting fact on the
+       output edge of the node
     *)
   val flow : t -> node -> fact -> fact
 
@@ -72,12 +72,12 @@ end
 
 (* generic iterative dataflow solver ---------------------------------------- *)
 (* This functor takes two modules:
-      Fact  - the implementation of the lattice                                
+      Fact  - the implementation of the lattice
       Graph - the dataflow anlaysis graph
 
-   It produces a module that has a single function 'solve', which 
+   It produces a module that has a single function 'solve', which
    implements the iterative dataflow analysis described in lecture.
-      - using a worklist (or workset) nodes 
+      - using a worklist (or workset) nodes
         [initialized with the set of all nodes]
 
       - process the worklist until empty:
@@ -86,7 +86,7 @@ end
           . apply the flow function to the combined input to find the new
             output
           . if the output has changed, update the graph and add the node's
-            successors to the worklist                                        
+            successors to the worklist
 
    TASK: complete the [solve] function, which implements the above algorithm.
 *)

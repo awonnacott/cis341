@@ -4,7 +4,7 @@ int sum(int[]? arr) {
       for(var i = 0; i < length(a); i = i+1;) {
         acc = acc + a[i];
       }
-    } 
+    }
     return acc;
 }
 

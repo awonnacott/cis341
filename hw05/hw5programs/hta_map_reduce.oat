@@ -46,20 +46,20 @@ int sumOfSquares(int[] arr, int arrlen, int numPartitions, int partitionLen) {
 	}
 	var j = 0;
 	var k = 0;
-	for (var i = 0; i < arrlen; i = i + 1;) { 
+	for (var i = 0; i < arrlen; i = i + 1;) {
 		src[j][k] = arr[i];
-		if (j == numPartitions - 1) { 
-			j = 0; 
+		if (j == numPartitions - 1) {
+			j = 0;
 			k = k + 1;
 		} else { j = j + 1; }
 	}
 	/* Build map-jobs */
 	var mapJobs = new MapJob[numPartitions];
 	for (var i = 0; i < numPartitions; i = i + 1;) {
-		mapJobs[i] = new MapJob { 
-			f = square; 
-			arr = src[i]; 
-			arrlen = partitionLen 
+		mapJobs[i] = new MapJob {
+			f = square;
+			arr = src[i];
+			arrlen = partitionLen
 		};
 	}
 	/* Map! */
@@ -67,7 +67,7 @@ int sumOfSquares(int[] arr, int arrlen, int numPartitions, int partitionLen) {
 	for (var i = 0; i < numPartitions; i = i + 1;) {
 		tgt[i] = mapNode(mapJobs[i]);
 	}
-	
+
 	/* Build reduce-jobs */
 	var reduceJobs = new ReduceJob[numPartitions];
 	for (var i = 0; i < numPartitions; i = i + 1;) {
@@ -80,7 +80,7 @@ int sumOfSquares(int[] arr, int arrlen, int numPartitions, int partitionLen) {
 	}
 	/* Reduce! */
 	var acc = 0;
-	for (var i = 0; i < numPartitions; i = i + 1;) { 
+	for (var i = 0; i < numPartitions; i = i + 1;) {
 		acc = acc + reduceNode(reduceJobs[i]);
 	}
 	return acc;

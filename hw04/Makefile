@@ -1,6 +1,7 @@
 DIRS= util,x86,grading,ll
 PKGS = num
 LIBS = unix,str
+CFLAGS := -w,+a-4-26-27-32-33-35-39-40-42-45
 SUBMIT := lexer.mll parser.mly frontend.ml studenttests.ml
 
 .PHONY: all test clean format
@@ -11,7 +12,7 @@ test: all
 	./main.native --test --clang
 
 main.native:
-	ocamlbuild -cflags -w,+a-4-40-42 -Is $(DIRS) -pkg $(PKGS) -libs $(LIBS) main.native -use-menhir -yaccflag --explain
+	ocamlbuild -cflags $(CFLAGS) -Is $(DIRS) -pkg $(PKGS) -libs $(LIBS) main.native -use-menhir -yaccflag --explain
 
 clean:
 	ocamlbuild -clean

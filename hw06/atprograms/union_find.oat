@@ -6,7 +6,7 @@ int[] create_ufind(int len)
     arr[i] = i;
   }
   return arr;
-  
+
 }
 
 void union(int[] comps, int u, int v)
@@ -49,7 +49,7 @@ int program (int argc, string[] argv) {
   union(uf, 1, 6);
   union(uf, 2, 5);
   union(uf, 5, 0);
-  
+
   for(var i = 0; i < 8; i = i + 1;){
     print_int(find(uf, i));
     print_string(" ");

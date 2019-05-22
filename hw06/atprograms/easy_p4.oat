@@ -1,4 +1,4 @@
-/* This is a test case: level 0 
+/* This is a test case: level 0
 
    /* level 1 */
 
@@ -11,10 +11,10 @@
 */
 
 string f ( ) {
-  var s = 
+  var s =
     new string[][]
         {
-          new string []{ 
+          new string []{
             "s00:\n+\n=2*\n",
             "s01:this is not a comment in string.*",
             "s02:\"\\t\\n\\\\?\""

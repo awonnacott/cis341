@@ -5,7 +5,7 @@ struct Color {
 }
 
 int program (int argc, string[] argv) {
-  var garr = new Color { red = 3; green = 4; blue = 5 }; 
+  var garr = new Color { red = 3; green = 4; blue = 5 };
   garr.red = 17;
   return garr.red + garr.green;
 }

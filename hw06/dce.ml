@@ -7,12 +7,12 @@ open Datastructures
 
 (* expose a top-level analysis operation ------------------------------------ *)
 (* TASK: This function should optimize a block by removing dead instructions
-   - lb: a function from uids to the live-OUT set at the 
+   - lb: a function from uids to the live-OUT set at the
      corresponding program point
    - ab: the alias map flowing IN to each program point in the block
    - b: the current ll block
 
-   Note: 
+   Note:
      Call instructions are never considered to be dead (they might produce
      side effects)
 

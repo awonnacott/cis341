@@ -20,7 +20,7 @@ void sort((Edge, Edge) -> int cmp, int len, Edge[] list) {
         list[j+1] = temp;
         j = j - 1;
       }
-      else { 
+      else {
         j = -1;
       }
     }
@@ -37,7 +37,7 @@ int[] create_ufind(int len)
     arr[i] = i;
   }
   return arr;
-  
+
 }
 
 void union(int[] comps, int u, int v)
@@ -105,7 +105,7 @@ int program (int argc, string[] argv) {
 
   var edges = new Edge[]{e1, e2, e3, e4, e5, e6};
   var mst = findMST(edges, 6, 5);
-  
+
   for(var i = 0; i < 4; i = i + 1;){
     print_string("(");
     print_int(mst[i].u);

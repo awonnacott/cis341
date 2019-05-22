@@ -5,5 +5,5 @@ int program (int argc, string[] argv) {
 		      new int[]{x+2+0, x+2+1, x+2+2}};
 
   var b = a;
-  return b[2][1]; 
+  return b[2][1];
 }

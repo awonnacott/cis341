@@ -30,7 +30,7 @@ module SymConst = struct
         "UndefConst"
 end
 
-(* The analysis computes, at each program point, which UIDs in scope will evaluate 
+(* The analysis computes, at each program point, which UIDs in scope will evaluate
    to integer constants *)
 type fact = SymConst.t UidM.t
 
@@ -75,7 +75,7 @@ module Solver = Solver.Make (Fact) (Graph)
 
 (* expose a top-level analysis operation ------------------------------------ *)
 let analyze (g : Cfg.t) : Graph.t =
-  (* the analysis starts with every node set to bottom (the map of every uid 
+  (* the analysis starts with every node set to bottom (the map of every uid
      in the function to UndefConst *)
   let init l = UidM.empty in
   (* the flow into the entry node should indicate that any parameter to the
@@ -85,7 +85,7 @@ let analyze (g : Cfg.t) : Graph.t =
   Solver.solve fg
 
 (* run constant propagation on a cfg given analysis results ----------------- *)
-(* HINT: your cp_block implementation will probably rely on several helper 
+(* HINT: your cp_block implementation will probably rely on several helper
    functions.                                                                 *)
 let run (cg : Graph.t) (cfg : Cfg.t) : Cfg.t =
   let open SymConst in

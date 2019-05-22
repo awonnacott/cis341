@@ -2,7 +2,7 @@
   open Lexing
   open Parser
   open Range
-  
+
   exception Lexer_error of Range.t * string
 
   let reset_lexbuf (filename:string) (lnum:int) lexbuf : unit =
@@ -17,7 +17,7 @@
     lexbuf.lex_curr_p <- { (lexeme_end_p lexbuf) with
       pos_lnum = (lexeme_end_p lexbuf).pos_lnum + 1;
       pos_bol = (lexeme_end lexbuf) }
-    
+
   (* Boilerplate to define exceptional cases in the lexer. *)
   let unexpected_char lexbuf (c:char) : 'a =
     raise (Lexer_error (Range.lex_range lexbuf,
@@ -53,7 +53,7 @@
   ( ")", RPAREN);
   ( "[", LBRACKET);
   ( "]", RBRACKET);
-  
+
   ]
 
 let (symbol_table : (string, Parser.token) Hashtbl.t) = Hashtbl.create 1024
@@ -61,8 +61,8 @@ let (symbol_table : (string, Parser.token) Hashtbl.t) = Hashtbl.create 1024
     List.iter (fun (str,t) -> Hashtbl.add symbol_table str t) reserved_words
 
   let create_token lexbuf =
-    let str = lexeme lexbuf in 
-    try (Hashtbl.find symbol_table str) 
+    let str = lexeme lexbuf in
+    try (Hashtbl.find symbol_table str)
     with _ -> IDENT str
 
   (* Lexing comments and strings *)
@@ -75,7 +75,7 @@ let (symbol_table : (string, Parser.token) Hashtbl.t) = Hashtbl.create 1024
 
   let lex_long_range lexbuf : Range.t =
     let end_p = lexeme_end_p lexbuf in
-    mk_range end_p.pos_fname (!start_lex) (pos_of_lexpos end_p)  
+    mk_range end_p.pos_fname (!start_lex) (pos_of_lexpos end_p)
 
   let reset_str () = string_end := 0
 
@@ -118,7 +118,7 @@ rule token = parse
   | "/*" { start_lex := start_pos_of_lexbuf lexbuf; comments 0 lexbuf }
   | '"' { reset_str(); start_lex := start_pos_of_lexbuf lexbuf; string false lexbuf }
   | '#' { let p = lexeme_start_p lexbuf in
-          if p.pos_cnum - p.pos_bol = 0 then directive 0 lexbuf 
+          if p.pos_cnum - p.pos_bol = 0 then directive 0 lexbuf
           else raise (Lexer_error (lex_long_range lexbuf,
             Printf.sprintf "# can only be the 1st char in a line.")) }
 
@@ -127,37 +127,37 @@ rule token = parse
   | whitespace+ { token lexbuf }
   | newline { newline lexbuf; token lexbuf }
 
-  | ';' | ',' | '{' | '}' | '+' | '-' | '*' | '=' | "==" 
-  | "!=" | '!' | '~' | '(' | ')' | '[' | ']' 
+  | ';' | ',' | '{' | '}' | '+' | '-' | '*' | '=' | "=="
+  | "!=" | '!' | '~' | '(' | ')' | '[' | ']'
     { create_token lexbuf }
 
   | _ as c { unexpected_char lexbuf c }
 
 and directive state = parse
-  | whitespace+ { directive state lexbuf } 
-  | digit+ { if state = 0 then 
-               (lnum := int_of_string (lexeme lexbuf); 
+  | whitespace+ { directive state lexbuf }
+  | digit+ { if state = 0 then
+               (lnum := int_of_string (lexeme lexbuf);
                 directive 1 lexbuf)
              else if state = 2 then directive 3 lexbuf
              else raise (Lexer_error (lex_long_range lexbuf,
                Printf.sprintf "Illegal directives")) }
   | '"' { if state = 1 then
             begin
-              reset_str(); 
-              start_lex := start_pos_of_lexbuf lexbuf; 
+              reset_str();
+              start_lex := start_pos_of_lexbuf lexbuf;
               string true lexbuf
-            end 
+            end
           else raise (Lexer_error (lex_long_range lexbuf,
-            Printf.sprintf "Illegal directives")) 
+            Printf.sprintf "Illegal directives"))
          }
   | newline { if state = 2 || state = 3 then
-                begin 
+                begin
                   reset_lexbuf (get_str()) !lnum lexbuf;
                   token lexbuf
-                end 
+                end
               else raise (Lexer_error (lex_long_range lexbuf,
                 Printf.sprintf "Illegal directives")) }
-  | _ { raise (Lexer_error (lex_long_range lexbuf, 
+  | _ { raise (Lexer_error (lex_long_range lexbuf,
           Printf.sprintf "Illegal directives")) }
 
 and comments level = parse
@@ -172,7 +172,7 @@ and comments level = parse
 and string in_directive = parse
   | '"'  { if in_directive = false then
              STRING (get_str())
-           else directive 2 lexbuf }  
+           else directive 2 lexbuf }
   | '\\' { add_str(escaped lexbuf); string in_directive lexbuf }
   | '\n' { add_str '\n'; newline lexbuf; string in_directive lexbuf }
   | eof  { raise (Lexer_error (lex_long_range lexbuf,

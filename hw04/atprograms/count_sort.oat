@@ -24,7 +24,7 @@ int[] count_sort(int[] arr, int len) {
   var max = max(arr, len);
 
   var counts = new int[max - min + 1];
-  
+
   for (var i = 0; i < len; i = i + 1;) {
     counts[arr[i] - min] = counts[arr[i] - min] + 1;
   }

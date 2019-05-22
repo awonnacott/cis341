@@ -11,8 +11,8 @@ int[] g() {
 
 int program (int argc, string[] argv) {
   var arr1 = new int[] {99, 1, 99};
-  var arr2 = new int[][] {new int[]{99,99,99}, 
-                          new int[]{99,1,99}, 
+  var arr2 = new int[][] {new int[]{99,99,99},
+                          new int[]{99,1,99},
                           new int[]{99,99,99}};
 
   var c = 1;

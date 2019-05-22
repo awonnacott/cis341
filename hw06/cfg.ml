@@ -11,7 +11,7 @@ open Datastructures
 
    - a cfg has:
          blocks - a map of labels to  Ll basic block, and
-         preds  - a set of labels containing the blocks predecessors           
+         preds  - a set of labels containing the blocks predecessors
          ret_ty - the Ll return type of the function
          args   - a list of function parameters with their types
 
@@ -119,9 +119,9 @@ module AsGraph (D : AS_GRAPH_PARAMS) : sig
   val of_cfg : (node -> D.t) -> D.t -> cfg -> t
 
   (* We need to be able to look up the resulting solved dataflow analysis facts
-       per block and per instruction.  We also need to be able to inspect the 
-       input and output information for each.    
-       The way we compute this information depends on the direction of the 
+       per block and per instruction.  We also need to be able to inspect the
+       input and output information for each.
+       The way we compute this information depends on the direction of the
        analysis.
           uid_in and uid_out work for both instructions and terminators the lbl
           is of the containing block
@@ -144,13 +144,13 @@ end = struct
   type t = {cfg: cfg; dfa: D.t LblM.t}
 
   (* We use _blocks_ of the control flow graph as the nodes of the dataflow
-       graph.  Each block is identified by its lbl. 
+       graph.  Each block is identified by its lbl.
 
        This choice means that we won't use the "exploded" control-flow graph, where
        each instruction is considered a node.  The reason for this decision is two-fold:
-       One: the edges of the cfg are defined in terms of block labesl.  
+       One: the edges of the cfg are defined in terms of block labesl.
        Two: we can speed up the dataflow analysis by propagating information across and
-       entire block.  
+       entire block.
        The cost of this decision is that we have to re-calculate the flow information
        for individual instructions when we need it.
     *)
@@ -200,7 +200,7 @@ end = struct
   (* Block flow function *)
   (* dataflow analysis helpers ------------------------------------------------ *)
 
-  (* Propagate dataflow information forward through a whole block. 
+  (* Propagate dataflow information forward through a whole block.
          - fi is the flow function for instructions
          - ft is the flow function for terminators
          - d_in is the dataflow fact on the in edge
@@ -226,11 +226,11 @@ end = struct
   let add_fact n d g = {g with dfa= LblM.add n d g.dfa}
 
   (* Because the cfg instance of the dataflow graph uses _basic blocks_ as nodes,
-       we need a way to recover the dataflow facts at individual instructions 
+       we need a way to recover the dataflow facts at individual instructions
        within the block.  Depending on the direction of the analysis, this amounts to
-       propagating information either forward or backwards through the block.  
+       propagating information either forward or backwards through the block.
 
-       The following helper functions construct maps from each instruction or terminator 
+       The following helper functions construct maps from each instruction or terminator
        to the  corresponding dataflow fact.  *)
 
   (* Compute IN[n] for each instruction in a block, given IN of the first instruction *)

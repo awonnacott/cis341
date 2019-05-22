@@ -16,7 +16,7 @@ int compute_determinant(int[][] matrix, int n) {
        for (var o = k; o < n-1; o=o+1;) {
           for (var p = 0; p < n-1; p=p+1;) {
             b[p][o] = matrix[p+1][o+1];
-          }       
+          }
        }
        multiplier = multiplier * -1;
        sum = sum + multiplier * matrix[0][k] * compute_determinant(b, n-1);
@@ -27,5 +27,5 @@ int compute_determinant(int[][] matrix, int n) {
 
 int program (int argc, string[] argv) {
   var matrix = new int[][]{new int[]{20,2},new int[]{3,5}};
-  return compute_determinant(matrix, 2); 
+  return compute_determinant(matrix, 2);
 }

@@ -68,11 +68,11 @@ int connected (int[][] arr, int row, int col) {
 
   for (var i = 0; i < row; i = i + 1;) {
     var j = 0;
-    
+
     while (j < col) {
     if (visited[i][j] == 0) {
       visited[i][j] = 1;
-      
+
       if (arr[i][j] == 1) {
         counter = counter + 1;
 
@@ -90,7 +90,7 @@ int connected (int[][] arr, int row, int col) {
 int program (int argc, string[] argv) {
   var territory_a = new int[][]{new int[]{1, 0, 1, 0},
                                 new int[]{1, 1, 0, 1},
-                                new int[]{1, 0, 1, 1}, 
+                                new int[]{1, 0, 1, 1},
                                 new int[]{0, 1, 1, 0}};
   var territory_b = new int[][]{new int[]{0, 0, 1, 0, 1},
                                 new int[]{0, 1, 1, 0, 1},
@@ -124,7 +124,7 @@ int program (int argc, string[] argv) {
   var all = connected(all_conquered, 6, 6);
   var i = connected(island, 1, 1);
   var e = connected(emptyland, 0, 0);
-  
+
   if (a == 3 & b == 1 & c == 5 & none == 0 & all == 1 & i == 1 & e == 0) {
     print_string("Charizard is the BEST Pokemon ever!!!");
   }

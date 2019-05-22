@@ -9,7 +9,7 @@ int gcd(int a, int b) {
 }
 
 int mod (int a, int b) {
-  
+
   var t = a;
   while (t - b >= 0) {
       t = t - b;

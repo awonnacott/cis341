@@ -12,7 +12,7 @@ open Ast
      of the instruction stream. You will find this useful for compiling string
      literals
    - E of uid * insn: allows you to emit an instruction that will be moved up
-     to the entry block of the current function. This will be useful for 
+     to the entry block of the current function. This will be useful for
      compiling local variable declarations
 *)
 
@@ -81,7 +81,7 @@ module Ctxt = struct
   let lookup (id : Ast.id) (c : t) : Ll.ty * Ll.operand = List.assoc id c
 end
 
-(* Mapping of identifiers representing struct definitions to 
+(* Mapping of identifiers representing struct definitions to
  * the corresponding name-to-name-to-type map.
 
    Note:  You will need to use these operations when compiling structures.
@@ -134,7 +134,7 @@ end
 (* compiling OAT types ------------------------------------------------------ *)
 
 (* The mapping of source types onto LLVMlite is straightforward. Booleans and ints
-   are represented as the the corresponding integer types. OAT strings are 
+   are represented as the the corresponding integer types. OAT strings are
    pointers to bytes (I8). Arrays are the most interesting type: they are
    represented as pointers to structs where the first component is the number
    of elements in the following array.
@@ -193,7 +193,7 @@ let gensym : string -> string =
   let c = ref 0 in
   fun (s : string) -> incr c ; Printf.sprintf "_%s%d" s !c
 
-(* Amount of space an Oat type takes when stored in the satck, in bytes.  
+(* Amount of space an Oat type takes when stored in the satck, in bytes.
    Note that since structured values are manipulated by reference, all
    Oat values take 8 bytes on the stack.
 *)
@@ -241,9 +241,9 @@ let oat_alloc_array ct (t : Ast.ty) (size : Ll.operand) : Ll.ty * operand * stre
       [ (arr_id, Call (arr_ty, Gid "oat_alloc_array", [(I64, size)]))
       ; (ans_id, Bitcast (arr_ty, Id arr_id, ans_ty)) ] )
 
-(* Allocates an oat structure on the 
-   heap and returns a target operand with the appropriate reference.  
-   
+(* Allocates an oat structure on the
+   heap and returns a target operand with the appropriate reference.
+
    - generate a call to 'oat_malloc' and use bitcast to conver the
      resulting pointer to the right type
 
@@ -306,7 +306,7 @@ let cmp_binop t (b : Ast.binop) : Ll.operand -> Ll.operand -> Ll.insn =
 
 (* Compiles an expression exp in context c, outputting the Ll operand that will
    recieve the value of the expression, and the stream of instructions
-   implementing the expression. 
+   implementing the expression.
 *)
 let rec cmp_exp (tc : TypeCtxt.t) (c : Ctxt.t) (exp : Ast.exp node) : Ll.ty * Ll.operand * stream =
   match exp.elt with
@@ -514,7 +514,7 @@ and cmp_exp_as (tc : TypeCtxt.t) (c : Ctxt.t) (e : Ast.exp node) (t : Ll.ty) : L
     let res_id = gensym "cast" in
     (Id res_id, code >:: I (res_id, Bitcast (from_t, op, t)))
 
-(* Compile a statement in context c with return typ rt. Return a new context, 
+(* Compile a statement in context c with return typ rt. Return a new context,
    possibly extended with new local bindings, and the instruction stream
    implementing the statement.
 
@@ -545,11 +545,11 @@ and cmp_stmt (tc : TypeCtxt.t) (c : Ctxt.t) (rt : Ll.ty) (stmt : Ast.stmt node) 
       , guard_code
         >:: T (Cbr (guard_op, lt, le))
         >:: L lt >@ then_code >:: T (Br lm) >:: L le >@ else_code >:: T (Br lm) >:: L lm )
-  (* the 'if?' checked null downcast statement.  
+  (* the 'if?' checked null downcast statement.
        - check whether the value computed by exp is null, if so jump to
          the 'null' block, otherwise take the 'notnull' block
 
-       - the identifier id is in scope in the 'nutnull' block and so 
+       - the identifier id is in scope in the 'nutnull' block and so
          needs to be allocated (and added to the context)
 
        - as in the if-the-else construct, you should jump to the common
@@ -615,7 +615,7 @@ let get_struct_defns (p : Ast.prog) : TypeCtxt.t =
     p TypeCtxt.empty
 
 (* Adds each function identifer to the context at an
-   appropriately translated type.  
+   appropriately translated type.
 
    NOTE: The Gid of a function is just its source name
 *)
@@ -626,12 +626,12 @@ let cmp_function_ctxt (tc : TypeCtxt.t) (c : Ctxt.t) (p : Ast.prog) : Ctxt.t =
           Ctxt.add c fname (cmp_ty tc ft, Gid fname) | _ -> c )
     c p
 
-(* Populate a context with bindings for global variables 
+(* Populate a context with bindings for global variables
    mapping OAT identifiers to LLVMlite gids and their types.
 
    Only a small subset of OAT expressions can be used as global initializers
-   in well-formed programs. (The constructors starting with C and Id's 
-   for global function values). 
+   in well-formed programs. (The constructors starting with C and Id's
+   for global function values).
 *)
 let cmp_global_ctxt (tc : TypeCtxt.t) (c : Ctxt.t) (p : Ast.prog) : Ctxt.t =
   let gexp_ty c = function

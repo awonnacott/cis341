@@ -56,7 +56,7 @@ let loc (startpos:Lexing.position) (endpos:Lexing.position) (elt:'a) : 'a node =
 %token AMPER    /* & */
 %token IOR      /* [|] */
 %token IAND     /* [&] */
-%token LTLT     /* << */  
+%token LTLT     /* << */
 %token GTGT     /* >> */
 %token GTGTGT   /* >>> */
 %token ARROW    /* -> */
@@ -68,7 +68,7 @@ let loc (startpos:Lexing.position) (endpos:Lexing.position) (elt:'a) : 'a node =
 %left AMPER
 %left EQEQ BANGEQ
 %left LT LTEQ GT GTEQ
-%left LTLT GTGTGT GTGT 
+%left LTLT GTGTGT GTGT
 %left PLUS DASH
 %left STAR
 %left DOT
@@ -108,7 +108,7 @@ decl:
     { Gvdecl (loc $startpos $endpos { name; init }) }
   | frtyp=ret_ty fname=IDENT LPAREN args=arglist RPAREN body=block
     { Gfdecl (loc $startpos $endpos { frtyp; fname; args; body }) }
-  | STRUCT name=UIDENT LBRACE fs=separated_list(SEMI, decl_field) RBRACE 
+  | STRUCT name=UIDENT LBRACE fs=separated_list(SEMI, decl_field) RBRACE
     { Gtdecl (loc $startpos $endpos (name, fs)) }
 
 decl_field:
@@ -116,13 +116,13 @@ decl_field:
 
 arglist:
   | l=separated_list(COMMA, pair(ty,IDENT)) { l }
-    
+
 ty:
   | TINT   { TInt }
   | r=rtyp { TRef r } %prec LOW
   | r=rtyp QUESTION { TNullRef r }
-  | LPAREN t=ty RPAREN { t } 
-  | TBOOL  { TBool } 
+  | LPAREN t=ty RPAREN { t }
+  | TBOOL  { TBool }
 
 %inline ret_ty:
   | TVOID  { RetVoid }
@@ -141,7 +141,7 @@ ty:
   | PLUS   { Add }
   | DASH   { Sub }
   | STAR   { Mul }
-  | EQEQ   { Eq } 
+  | EQEQ   { Eq }
   | BANGEQ { Neq }
   | LT     { Lt }
   | LTEQ   { Lte }
@@ -153,7 +153,7 @@ ty:
   | IOR    { IOr }
   | LTLT   { Shl }
   | GTGT   { Shr }
-  | GTGTGT { Sar } 
+  | GTGTGT { Sar }
 
 %inline uop:
   | DASH  { Neg }
@@ -164,10 +164,10 @@ gexp:
   | r=rtyp NULL{ loc $startpos $endpos @@ CNull r }
   | TRUE       { loc $startpos $endpos @@ CBool true }
   | FALSE      { loc $startpos $endpos @@ CBool false }
-  | i=INT      { loc $startpos $endpos @@ CInt i } 
+  | i=INT      { loc $startpos $endpos @@ CInt i }
   | s=STRING   { loc $startpos $endpos @@ CStr s }
   | NEW t=ty LBRACKET RBRACKET LBRACE cs=separated_list(COMMA, gexp) RBRACE
-               { loc $startpos $endpos @@ CArr (t, cs) } 
+               { loc $startpos $endpos @@ CArr (t, cs) }
   | NEW i=UIDENT LBRACE fs=separated_list(SEMI, gfield) RBRACE
                { loc $startpos $endpos @@ CStruct (i, fs) }
   | id=IDENT {loc $startpos $endpos @@ Id id }
@@ -175,7 +175,7 @@ gexp:
 gfield:
   | id=IDENT EQ e=gexp { (id, e) }
 
-lhs:  
+lhs:
   | id=IDENT            { loc $startpos $endpos @@ Id id }
   | e=exp LBRACKET i=exp RBRACKET
                         { loc $startpos $endpos @@ Index (e, i) }
@@ -203,7 +203,7 @@ exp:
   | u=uop e=exp         { loc $startpos $endpos @@ Uop (u, e) }
   | LENGTH LPAREN e=exp RPAREN
                         { loc $startpos $endpos @@ Length(e) }
-  | LPAREN e=exp RPAREN { e } 
+  | LPAREN e=exp RPAREN { e }
 
 field:
   | id=IDENT EQ e=exp { (id, e) }
@@ -211,7 +211,7 @@ field:
 vdecl:
   | VAR id=IDENT EQ init=exp { (id, init) }
 
-stmt: 
+stmt:
   | d=vdecl SEMI        { loc $startpos $endpos @@ Decl(d) }
   | p=lhs EQ e=exp SEMI { loc $startpos $endpos @@ Assn(p,e) }
   | e=exp LPAREN es=separated_list(COMMA, exp) RPAREN SEMI
@@ -219,10 +219,10 @@ stmt:
   | ifs=if_stmt         { ifs }
   | RETURN SEMI         { loc $startpos $endpos @@ Ret(None) }
   | RETURN e=exp SEMI   { loc $startpos $endpos @@ Ret(Some e) }
-  | WHILE LPAREN e=exp RPAREN b=block  
-                        { loc $startpos $endpos @@ While(e, b) } 
+  | WHILE LPAREN e=exp RPAREN b=block
+                        { loc $startpos $endpos @@ While(e, b) }
   | FOR LPAREN ds=separated_list(COMMA, vdecl) SEMI e=exp? SEMI s=stmt? RPAREN b=block
-                        { loc $startpos $endpos @@ For(ds,e,s,b) } 
+                        { loc $startpos $endpos @@ For(ds,e,s,b) }
 
 block:
   | LBRACE stmts=list(stmt) RBRACE { stmts }

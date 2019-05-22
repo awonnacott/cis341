@@ -44,10 +44,10 @@ let typ_of_unop : Ast.unop -> Ast.ty * Ast.ty = function
       (TBool, TBool)
 
 (* subtyping ---------------------------------------------------------------- *)
-(* Decides whether H |- t1 <: t2 
+(* Decides whether H |- t1 <: t2
     - assumes that H contains the declarations of all the possible struct types
 
-    - you will want to introduce addition (possibly mutually recursive) 
+    - you will want to introduce addition (possibly mutually recursive)
       helper functions to implement the different judgments of the subtyping
       relation. We have included a template for subtype_ref to get you started.
       (Don't forget about OCaml's 'and' keyword.)
@@ -112,8 +112,8 @@ and subtype_fields c n1 n2 : bool =
     - the function should succeed by returning () if the type is well-formed
       according to the rules
 
-    - the function should fail using the "type_error" helper function if the 
-      type is 
+    - the function should fail using the "type_error" helper function if the
+      type is
 
     - l is just an ast node that provides source location information for
       generating error messages (it's only needed for the type_error generation)
@@ -269,8 +269,8 @@ let rec typecheck_exp (c : Tctxt.t) (e : Ast.exp node) : Ast.ty =
 
 (* statements --------------------------------------------------------------- *)
 
-(* Typecheck a statement 
-   This function should implement the statment typechecking rules from oat.pdf.  
+(* Typecheck a statement
+   This function should implement the statment typechecking rules from oat.pdf.
 
    Inputs:
     - tc: the type context
@@ -282,22 +282,22 @@ let rec typecheck_exp (c : Tctxt.t) (e : Ast.exp node) : Ast.ty =
        after this statement
      - A boolean indicating the return behavior of a statement:
         false:  might not return
-        true: definitely returns 
+        true: definitely returns
 
         in the branching statements, both branches must definitely return
 
-        Intuitively: if one of the two branches of a conditional does not 
-        contain a return statement, then the entier conditional statement might 
+        Intuitively: if one of the two branches of a conditional does not
+        contain a return statement, then the entier conditional statement might
         not return.
-  
-        looping constructs never definitely return 
+
+        looping constructs never definitely return
 
    Uses the type_error function to indicate a (useful!) error message if the
    statement is not type correct.  The exact wording of the error message is
    not important, but the fact that the error is raised, is important.  (Our
    tests also do not check the location information associated with the error.)
 
-   - You will probably find it convenient to add a helper function that implements the 
+   - You will probably find it convenient to add a helper function that implements the
      block typecheck rules.
 *)
 let rec typecheck_stmt (tc : Tctxt.t) (s : Ast.stmt node) (to_ret : ret_ty) : Tctxt.t * bool =
@@ -414,7 +414,7 @@ and typecheck_block tc b to_ret =
       if r then type_error h2 "Dead code" else typecheck_block new_context (h2 :: t) to_ret
 
 (* struct type declarations ------------------------------------------------- *)
-(* Here is an example of how to implement the TYP_TDECLOK rule, which is 
+(* Here is an example of how to implement the TYP_TDECLOK rule, which is
    is needed elswhere in the type system.
  *)
 
@@ -431,8 +431,8 @@ let typecheck_tdecl (tc : Tctxt.t) id fs (l : 'a Ast.node) : unit =
   else List.iter (fun f -> typecheck_ty l tc f.ftyp) fs
 
 (* function declarations ---------------------------------------------------- *)
-(* typecheck a function declaration 
-    - extends the local context with the types of the formal parameters to the 
+(* typecheck a function declaration
+    - extends the local context with the types of the formal parameters to the
       function
     - typechecks the body of the function (passing in the expected return type
     - checks that the function actually returns
@@ -463,7 +463,7 @@ let typecheck_fdecl (tc : Tctxt.t) (f : Ast.fdecl) (l : 'a Ast.node) : unit =
    create_global_ctxt: - typechecks the global initializers and adds
    their identifiers to the 'G' global context
 
-     H ; G1 |-g prog ==> G2    
+     H ; G1 |-g prog ==> G2
 
 
    NOTE: global initializers may mention function identifiers as
@@ -511,8 +511,8 @@ let create_global_ctxt (tc : Tctxt.t) (p : Ast.prog) : Tctxt.t =
           c )
     tc p
 
-(* This function implements the |- prog and the H ; G |- prog 
-   rules of the oat.pdf specification.   
+(* This function implements the |- prog and the H ; G |- prog
+   rules of the oat.pdf specification.
 *)
 let typecheck_program (p : Ast.prog) : unit =
   let sc = create_struct_ctxt p in

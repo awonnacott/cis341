@@ -11,5 +11,5 @@ int program (int argc, string[] argv) {
   var a = new int[][3]{i -> new int[3]{j -> j}};
   var arr = new int[][4]{i -> new int[5]{j -> i*j }};
   var arr0 = new int[][3]{i -> new int[3]{j -> i*j}};
-  return arr[3][4] + a[1][2] + f(arr0) + g(4); 
+  return arr[3][4] + a[1][2] + f(arr0) + g(4);
 }

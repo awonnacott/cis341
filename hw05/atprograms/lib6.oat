@@ -7,6 +7,6 @@ int program (int argc, string[] argv) {
     s = s + arr2[i];
   }
   print_int(s);
-  return s; 
-} 
+  return s;
+}
 

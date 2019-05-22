@@ -50,8 +50,8 @@ void post_order_traverse(Tree tree) {
 
 int program(int argc, string[] argv) {
 	var nullchild = new Tree { val = 0; left = Tree null; right = Tree null; f = print};
-	var rightchild = new Tree { val = 1; left = nullchild; right = nullchild; f = print }; 
-	var leftchild = new Tree { val = 1; left = nullchild; right = nullchild; f = print }; 
+	var rightchild = new Tree { val = 1; left = nullchild; right = nullchild; f = print };
+	var leftchild = new Tree { val = 1; left = nullchild; right = nullchild; f = print };
 	var tree = new Tree { val = 2; left = leftchild; right = rightchild; f = print };
 
 	pre_order_traverse(tree);

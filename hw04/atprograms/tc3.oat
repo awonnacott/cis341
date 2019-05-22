@@ -1,5 +1,5 @@
 bool f(int a) {
   var b = true;
   if (a) { b=true; } else { b=false; }
-  return b;  
+  return b;
 }

@@ -41,7 +41,7 @@ let terminator_uses (t : terminator) : UidS.t = uids_of_ops (terminator_ops t)
 
    the dataflow equation for liveness analysis is:
          in[n] = use[n] U (out[n] \ defs[n])
-   
+
    Because liveness is a backward analysis, the flow function expresses
    in[n] as a _function_ of n and out[n]:
       in[n] = flow n out[n]
@@ -85,7 +85,7 @@ let analyze (cfg : Cfg.cfg) : Graph.t =
   Solver.solve g
 
 (* Get liveness information as taken in by the backend. For each block
-   label or instruction uid in the graph, the resulting map is the set of 
+   label or instruction uid in the graph, the resulting map is the set of
    ids that are live on entry to that block or instruction.
 *)
 let get_liveness (f : Ll.fdecl) : uid -> UidS.t =

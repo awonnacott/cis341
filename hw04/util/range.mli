@@ -5,7 +5,7 @@
  * beginning and ending position specified in terms of line and column
  * numbers. A range is associated with tokens during lexing to allow
  * the compiler to give better error messages during lexing and
- * parsing.  
+ * parsing.
  *)
 
 (* a position in the source file; line number and column *)
@@ -47,8 +47,8 @@ val ml_string_of_range : t -> string
 (* use to tag generated AST nodes where range does not apply *)
 val norange : t
 
-val pos_of_lexpos : Lexing.position -> pos 
+val pos_of_lexpos : Lexing.position -> pos
 
-val mk_lex_range : Lexing.position -> Lexing.position -> t 
+val mk_lex_range : Lexing.position -> Lexing.position -> t
 
 val lex_range : Lexing.lexbuf -> t

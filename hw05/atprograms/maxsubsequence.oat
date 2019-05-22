@@ -11,7 +11,7 @@ int maxsum(int[] arr, int size) {
         if(maxs < maxarr[i]){
             maxs = maxarr[i];
         }
-    } 
+    }
     return maxs;
 }
 

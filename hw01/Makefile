@@ -1,5 +1,6 @@
 DIRS := util,grading
 LIBS := unix,str
+CFLAGS := -w,+a-4-26-27-32-33-35-39-40-42-45
 SUBMIT := hellocaml.ml providedtests.ml
 
 .PHONY: all test clean format
@@ -7,10 +8,10 @@ SUBMIT := hellocaml.ml providedtests.ml
 all: main.native
 
 main.native: $(SUBMIT)
-	ocamlbuild -cflags -w,+a-4-42 -Is $(DIRS) -libs $(LIBS) main.native
+	ocamlbuild -cflags $(CFLAGS) -Is $(DIRS) -libs $(LIBS) main.native
 
 main.byte:
-	ocamlbuild -cflags -w,+a-4-42 -Is $(DIRS) -libs $(LIBS) main.byte
+	ocamlbuild -cflags $(CFLAGS) -Is $(DIRS) -libs $(LIBS) main.byte
 
 test: all
 	./main.native --test

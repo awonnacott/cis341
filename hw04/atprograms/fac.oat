@@ -5,7 +5,7 @@ int f(int i) {
   } else {
     r = i * f (i-1);
   }
-  return r; 
+  return r;
 }
 
 int program (int argc, string[] argv) {

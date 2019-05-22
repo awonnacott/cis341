@@ -16,7 +16,7 @@ int fold_str_int(Node n, (int, int) -> int f, int base) {
     return f(base, n.i);
   }
 }
-  
+
 
 int program(int argc, string[] argv) {
   var n9 = new Node {i=9; next=Node null; hasNext=false};
@@ -29,4 +29,4 @@ int program(int argc, string[] argv) {
   var n2 = new Node {i=2; next=n3; hasNext=true};
   var n1 = new Node {i=1; next=n2; hasNext=true};
   return fold_str_int(n1, plus, 0) - fold_str_int(n1, minus, 2);
-} 
+}

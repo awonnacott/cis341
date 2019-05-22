@@ -86,7 +86,7 @@ let run_program_error (args : string) (executable : string) (tmp_out : string) :
 (* compiler pipeline -------------------------------------------------------- *)
 
 (* These functions implement the compiler pipeline for a single ll file:
-     - parse the file 
+     - parse the file
      - compile to a .s file using either clang or backend.ml
      - assemble the .s to a .o file using clang
 *)

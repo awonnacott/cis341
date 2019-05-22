@@ -1,4 +1,4 @@
-global arr = int[] null; 
+global arr = int[] null;
 
 int program (int argc, string[] argv) {
   arr = new int[]{17,42};

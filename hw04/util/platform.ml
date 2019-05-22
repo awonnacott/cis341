@@ -12,15 +12,15 @@ exception PlatformError of string * string
 let path_sep = "/"
 let dot_path = "./"
 let output_path = ref "output"
-let libs = ref [] 
+let libs = ref []
 let lib_paths = ref []
 let lib_search_paths = ref []
 let include_paths = ref []
 let executable_name = ref "a.out"
 
 (* unix utility scripts ----------------------------------------------------- *)
-let pp_cmd = ref "cpp -E " 
-let rm_cmd = ref "rm -rf " 
+let pp_cmd = ref "cpp -E "
+let rm_cmd = ref "rm -rf "
 
 
 (* -------------------------------------------------------------------------- *)
@@ -83,7 +83,7 @@ let create_output_dir () =
 (* clang invocation stuff --------------------------------------------------- *)
 let common_flags = "-Wno-override-module"
 let clang_ll_mode = "-S"
-let as_mode = "-c" 
+let as_mode = "-c"
 let opt_level = ref "-O1 -Wall"
 let clang args =
   Printf.sprintf "clang %s -o " (String.concat " " args)
@@ -107,7 +107,7 @@ let path_to_basename_ext (path:string) : string * string =
 
 (* compilation and shell commands-------------------------------------------- *)
 
-(* Platform independent shell command *)  
+(* Platform independent shell command *)
 let sh (cmd:string) (ret:string -> int -> 'a) : 'a =
   verb (sprintf "* %s\n" cmd);
   match (system cmd) with
@@ -118,7 +118,7 @@ let sh (cmd:string) (ret:string -> int -> 'a) : 'a =
 (* Generate a file name that does not already exist.
    basedir includes the path separator
 *)
-let gen_name (basedir:string) (basen:string) (baseext:string) : string =  
+let gen_name (basedir:string) (basen:string) (baseext:string) : string =
   let rec nocollide ofs =
     let nfn = sprintf "%s/%s%s%s" basedir basen
         (if ofs = 0 then "" else "_"^(string_of_int ofs)) baseext
@@ -134,7 +134,7 @@ let raise_error cmd i =
 let ignore_error _ _ = ()
 
 let preprocess (dot_oat:string) (dot_i:string) : unit =
-  sh (sprintf "%s%s %s %s" !pp_cmd 
+  sh (sprintf "%s%s %s %s" !pp_cmd
 	(List.fold_left (fun s -> fun i -> s ^ " -I" ^ i) "" !include_paths)
         dot_oat dot_i) raise_error
 
@@ -145,7 +145,7 @@ let assemble (dot_s:string) (dot_o:string) : unit =
   sh (sprintf "%s%s %s" (as_cmd ()) dot_o dot_s) raise_error
 
 let link (mods:string list) (out_fn:string) : unit =
-  sh (sprintf "%s%s %s %s %s %s" (link_cmd ()) out_fn 
+  sh (sprintf "%s%s %s %s %s %s" (link_cmd ()) out_fn
 	(String.concat " " (mods @ !lib_paths))
 	(List.fold_left (fun s -> fun i -> s ^ " -L" ^ i) "" !lib_search_paths)
 	(List.fold_left (fun s -> fun i -> s ^ " -I" ^ i) "" !include_paths)

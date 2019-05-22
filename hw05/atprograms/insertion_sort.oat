@@ -8,7 +8,7 @@ int[] insert(int[] partial, int len, int insertee) {
   }
   for (var i = 0; i < len; i = i + 1;) {
     if (not_yet_inserted) {
-      if (insertee > partial[i]) { 
+      if (insertee > partial[i]) {
         not_yet_inserted = false;
         inserted[i+1] = insertee;
         inserted[i] = partial[i];

@@ -8,7 +8,7 @@ int sieve(int n) {
   for(var i = 0; i < n; i=i+1;) {
   if(arr[i]){
       for(var j = i * 2; j < n; j=j+i;){
-        arr[j] = false; 
+        arr[j] = false;
       }
     }
   }

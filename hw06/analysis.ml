@@ -4,11 +4,11 @@ open Ll
 open Datastructures
 
 (* Because the cfg instance of the dataflow graph uses _basic blocks_ as nodes,
-   we need a way to recover the dataflow facts at individual instructions 
+   we need a way to recover the dataflow facts at individual instructions
    within the block.  Depending on the direction of the analysis, this amounts to
-   propagating information either forward or backwards through the block.  
+   propagating information either forward or backwards through the block.
 
-   The following helper functions construct maps from each instruction or terminator 
+   The following helper functions construct maps from each instruction or terminator
    to the  corresponding dataflow fact.  *)
 
 (* Compute IN for each instruction in a block, given IN of the first instruction *)

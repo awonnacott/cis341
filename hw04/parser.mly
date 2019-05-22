@@ -79,10 +79,10 @@ decl:
 
 arglist:
   | l=separated_list(COMMA, pair(ty,IDENT)) { l }
-    
+
 ty:
   | TINT   { TInt }
-  | r=rtyp { TRef r } 
+  | r=rtyp { TRef r }
 
 
 %inline ret_ty:
@@ -97,7 +97,7 @@ ty:
   | PLUS   { Add }
   | DASH   { Sub }
   | STAR   { Mul }
-  | EQEQ   { Eq } 
+  | EQEQ   { Eq }
 
 %inline uop:
   | DASH  { Neg }
@@ -106,9 +106,9 @@ ty:
 
 gexp:
   | t=ty NULL  { loc $startpos $endpos @@ CNull t }
-  | i=INT      { loc $startpos $endpos @@ CInt i } 
+  | i=INT      { loc $startpos $endpos @@ CInt i }
 
-lhs:  
+lhs:
   | id=IDENT            { loc $startpos $endpos @@ Id id }
   | e=exp LBRACKET i=exp RBRACKET
                         { loc $startpos $endpos @@ Index (e, i) }
@@ -123,12 +123,12 @@ exp:
                         { loc $startpos $endpos @@ Index (e, i) }
   | e=exp LPAREN es=separated_list(COMMA, exp) RPAREN
                         { loc $startpos $endpos @@ Call (e,es) }
-  | LPAREN e=exp RPAREN { e } 
+  | LPAREN e=exp RPAREN { e }
 
 vdecl:
   | VAR id=IDENT EQ init=exp { (id, init) }
 
-stmt: 
+stmt:
   | d=vdecl SEMI        { loc $startpos $endpos @@ Decl(d) }
   | p=lhs EQ e=exp SEMI { loc $startpos $endpos @@ Assn(p,e) }
   | e=exp LPAREN es=separated_list(COMMA, exp) RPAREN SEMI
@@ -136,8 +136,8 @@ stmt:
   | ifs=if_stmt         { ifs }
   | RETURN SEMI         { loc $startpos $endpos @@ Ret(None) }
   | RETURN e=exp SEMI   { loc $startpos $endpos @@ Ret(Some e) }
-  | WHILE LPAREN e=exp RPAREN b=block  
-                        { loc $startpos $endpos @@ While(e, b) } 
+  | WHILE LPAREN e=exp RPAREN b=block
+                        { loc $startpos $endpos @@ While(e, b) }
 
 block:
   | LBRACE stmts=list(stmt) RBRACE { stmts }

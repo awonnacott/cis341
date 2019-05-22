@@ -5,7 +5,7 @@
 %}
 
 (* Symbols *)
-%token STAR             (* * *)    
+%token STAR             (* * *)
 %token COMMA            (* , *)
 %token COLON            (* : *)
 %token EQUALS           (* = *)
@@ -114,10 +114,10 @@ edecl:
   | g=GID EQUALS EXTERNAL GLOBAL t=ty
     { (g, t) }
 
-nonptr_ty: 
+nonptr_ty:
   | VOID { Void }
   | I1 { I1 }
-  | I8 { I8 }    
+  | I8 { I8 }
   | I64 { I64 }
   | LBRACE ts=ty_list RBRACE
     { Struct ts }
@@ -233,7 +233,7 @@ bop:
   | SUB { Sub }
   | MUL { Mul }
   | SHL { Shl }
-  | XOR { Xor }      
+  | XOR { Xor }
   | AND { And }
   | LSHR { Lshr }
   | ASHR { Ashr }

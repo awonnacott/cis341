@@ -1,6 +1,6 @@
 void bubble_sort(int[] numbers, int array_size)
 {
-  var temp=0; 
+  var temp=0;
   var i = (array_size - 1);
 
   for (; i > 0; i=i-1;)
@@ -21,7 +21,7 @@ void bubble_sort(int[] numbers, int array_size)
 
 int program (int argc, string[] argv) {
   var a = new int[8]{i -> 0};
-  
+
   a[0] = 121;
   a[1] = 125;
   a[2] = 120;
@@ -35,7 +35,7 @@ int program (int argc, string[] argv) {
   print_string (" ");
   bubble_sort (a, 8);
   print_string (string_of_array (a));
- 
+
   return -1;
 }
 

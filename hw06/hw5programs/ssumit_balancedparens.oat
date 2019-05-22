@@ -12,7 +12,7 @@ struct Stack {
 }
 
 Stack push(Stack stack, int paren) {
-	var n = new Node {p = paren; next = stack.head}; 
+	var n = new Node {p = paren; next = stack.head};
 	return new Stack {size = stack.size + 1; head = n; push = stack.push; pop = stack.pop; peek = stack.peek};
 }
 
@@ -25,7 +25,7 @@ Stack pop(Stack stack) {
 
 int peek(Stack stack) {
 	if (stack.size == 0) {
-		return -1; 
+		return -1;
 	}
 	return stack.head.p;
 }
@@ -43,7 +43,7 @@ bool isStringBalanced(string input) {
 	var length = length_of_string(input);
 	var char_arr = array_of_string(input);
 	var result = new int[2*length];
-	var ptr = 0; 
+	var ptr = 0;
 	for (var i = 0; i < length; i = i + 1;) {
 		var char = char_arr[i];
 		if (char == leftParen | char == leftBracket | char == leftBrace) {
@@ -99,6 +99,6 @@ int program(int argc, string[] argv) {
 	var result = isStringBalanced(argv[1]);
 	if (result) {
 		return 1;
-	} 
+	}
 	return 0;
 }
