@@ -1,3 +1,5 @@
+(* Modified by: Andrew Wonnacott *)
+
 open Assert
 open X86
 open Driver
@@ -11,7 +13,7 @@ open Datastructures
 
 (* These tests will be used to grade your assignment *)
 
-let exec_ll_ast path ll_ast args extra_files =
+let exec_ll_ast regalloc path ll_ast args extra_files =
   let () = Platform.verb @@ Printf.sprintf "** exec_ll_ast: %s\n" path in
   let output_path = !Platform.output_path in
   (* First - optimize the ll ast *)
@@ -23,8 +25,7 @@ let exec_ll_ast path ll_ast args extra_files =
   (* Run the ll backend *)
   let () = write_file dot_ll_file ll_str in
   let _ = Backend.set_liveness "dataflow" in
-  (* NOTE: "better" for release! *)
-  let _ = Backend.set_regalloc "better" in
+  let _ = Backend.set_regalloc regalloc in
   let asm_ast = Backend.compile_prog ll_ast in
   let asm_str = X86.string_of_prog asm_ast in
   (* Write out the resulting .s file for debugging purposes *)
@@ -44,37 +45,37 @@ let exec_ll_ast path ll_ast args extra_files =
   let () = Platform.verb @@ Printf.sprintf "** Executable output:\n%s\n" result in
   result
 
-let exec_ll_file path args =
+let exec_ll_file regalloc path args =
   let ast = Driver.parse_ll_file path in
-  exec_ll_ast path ast args []
+  exec_ll_ast regalloc path ast args []
 
-let oat_file_e2e_test path args =
+let oat_file_e2e_test regalloc path args =
   let () = Platform.verb @@ Printf.sprintf "** oat_file_e2e_test: %s\n" path in
   (* Run the Oat typechecker and frontend *)
   let oat_ast = parse_oat_file path in
   Typechecker.typecheck_program oat_ast ;
   let ll_ast = Frontend.cmp_prog oat_ast in
-  exec_ll_ast path ll_ast args ["runtime.c"]
+  exec_ll_ast regalloc path ll_ast args ["runtime.c"]
 
 let pass_all = ref true
 
-let pass_all_executed_ll_file tests =
+let pass_all_executed_ll_file regalloc tests =
   List.map
     (fun (fn, ans) ->
       ( fn
       , fun () ->
-          try assert_eqf (fun () -> exec_ll_file fn "") ans ()
+          try assert_eqf (fun () -> exec_ll_file regalloc fn "") ans ()
           with exn ->
             pass_all := false ;
             raise exn ) )
     tests
 
-let pass_all_executed_oat_file tests =
+let pass_all_executed_oat_file regalloc tests =
   List.map
     (fun (path, args, ans) ->
       ( path ^ " args: " ^ args
       , fun () ->
-          try assert_eqf (fun () -> oat_file_e2e_test path args) ans ()
+          try assert_eqf (fun () -> oat_file_e2e_test regalloc path args) ans ()
           with exn ->
             pass_all := false ;
             raise exn ) )
@@ -492,10 +493,16 @@ let tests : suite =
   ; GradedTest ("dce optimization tests", 10, opt_dce_file dce_opt_tests)
   ; GradedTest ("constprop analysis tests", 15, dfa_constprop_file constprop_analysis_tests)
   ; GradedTest ("constprop optimization tests", 10, opt_constfold_file constprop_opt_tests)
-  ; Test ("ll regalloc correctness tests", pass_all_executed_ll_file ll_tests)
+  ; Test
+      ( "ll correctness integration tests for optimizers"
+      , pass_all_executed_ll_file "greedy" ll_tests )
+  ; Test
+      ( "oat correctness integration tests for optimizers"
+      , pass_all_executed_oat_file "greedy" (oat_correctness_tests @ regalloc_challenge_tests) )
+  ; Test ("ll regalloc correctness tests", pass_all_executed_ll_file "better" ll_tests)
   ; Test
       ( "oat regalloc correctness tests"
-      , pass_all_executed_oat_file (oat_correctness_tests @ regalloc_challenge_tests) )
+      , pass_all_executed_oat_file "better" (oat_correctness_tests @ regalloc_challenge_tests) )
   ; GradedTest ("oat regalloc quality tests", 35, quality_oat oat_regalloc_quality_tests) ]
 
 let manual_tests : suite =

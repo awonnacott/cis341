@@ -1,6 +1,7 @@
-(** Data structures, signatures  *)
-
 (* Author: Steve Zdancewic *)
+(* Modified by: Andrew Wonnacott *)
+
+(** Data structures, signatures  *)
 
 (** Comparable, printable type *)
 module type OrdPrintT = sig
