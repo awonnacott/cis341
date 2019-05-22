@@ -35,10 +35,14 @@ let block_succs (b : block) : LblS.t =
 
 (* compute a map from block labels to predecessors -------------------------- *)
 let cfg_preds (ast : (lbl * block) list) : LblS.t LblM.t =
-  let set_add l = LblM.update_or LblS.empty (LblS.add l) in
+  let set_add l k =
+    LblM.update k (function None -> Some LblS.empty | Some s -> Some (LblS.add l s))
+  in
   List.fold_left
     (fun m (l, b) ->
-      m |> LblM.update_or LblS.empty (fun s -> s) l |> LblS.fold (set_add l) (block_succs b) )
+      m
+      |> LblM.update l (function None -> Some LblS.empty | so -> so)
+      |> LblS.fold (set_add l) (block_succs b) )
     LblM.empty ast
 
 (* lookup operations -------------------------------------------------------- *)

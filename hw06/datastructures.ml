@@ -15,8 +15,6 @@ end
 module type SetS = sig
   include Set.S
 
-  val of_list : elt list -> t (* added to Set.S in OCaml 4.02 *)
-
   val to_string : t -> string
 
   val string_of_elt : elt -> string
@@ -26,8 +24,6 @@ end
 
 module MakeSet (Ord : OrdPrintT) : SetS with type elt = Ord.t = struct
   include Set.Make (Ord)
-
-  let of_list = List.fold_left (fun s e -> add e s) empty
 
   let to_string t =
     let s = elements t |> List.map Ord.to_string |> String.concat ", " in
@@ -42,12 +38,6 @@ end
 module type MapS = sig
   include Map.S
 
-  val update : ('a -> 'a) -> key -> 'a t -> 'a t
-
-  val find_or : 'a -> 'a t -> key -> 'a
-
-  val update_or : 'a -> ('a -> 'a) -> key -> 'a t -> 'a t
-
   val diff_keys : ('a -> 'a -> int) -> 'a t -> 'a t -> key list
 
   val to_string : (key -> 'a -> string) -> 'a t -> string
@@ -58,21 +48,12 @@ end
 module MakeMap (Ord : OrdPrintT) : MapS with type key = Ord.t = struct
   include Map.Make (Ord)
 
-  let update f k m = add k (f @@ find k m) m
-
-  (** Look up the value associated with a key; use default value if key is not present *)
-  let find_or d m k = try find k m with Not_found -> d
-
   let diff_keys cmp_v m n =
     let module S = MakeSet (Ord) in
     let has_binding_or_add m k v l =
       try if cmp_v v @@ find k m == 0 then l else S.add k l with Not_found -> S.add k l
     in
     S.empty |> fold (has_binding_or_add n) m |> fold (has_binding_or_add m) n |> S.elements
-
-  (** Updating the value associated with key by applying the function f;  if the key is
-        not present, associate the value (f d) for the given default value d *)
-  let update_or d f k m = add k (f @@ find_or d m k) m
 
   let to_string val_str t =
     let s =
@@ -118,10 +99,12 @@ module UidGraph = struct
 
   (** Add edge u <-> v *)
   let add_edge graph u v =
-    UidM.update_or UidS.empty (UidS.add v) u (UidM.update_or UidS.empty (UidS.add u) v graph)
+    UidM.update u
+      (function None -> Some UidS.empty | Some s -> Some (UidS.add v s))
+      (UidM.update v (function None -> Some UidS.empty | Some s -> Some (UidS.add u s)) graph)
 
   (** Add a vertex with no neighbors *)
-  let add_vertex graph v = UidM.update_or UidS.empty (fun x -> x) v graph
+  let add_vertex graph v = UidM.update v (function None -> Some UidS.empty | x -> x) graph
 
   (** For each uid in uids *)
   let add_clique graph (uids : Ll.uid list) =
@@ -134,13 +117,14 @@ module UidGraph = struct
     go graph uids
 
   (** Number of vertices adjacent to a given one *)
-  let degree graph v = UidS.cardinal (UidM.find_or UidS.empty graph v)
+  let degree graph v =
+    UidS.cardinal (match UidM.find_opt graph v with None -> UidS.empty | Some s -> s)
 
   (** Remove a vertex (and all of its incident edges) from a graph *)
   let remove_vertex graph v = UidM.map (UidS.remove v) (UidM.remove v graph)
 
   (** List of neighbors of a vertex *)
-  let neighbors graph v = UidM.find_or UidS.empty graph v
+  let neighbors graph v = match UidM.find_opt graph v with None -> UidS.empty | Some s -> s
 
   (** Find a minimal vertex, according to a given min function *)
   let min_vertex min graph =
