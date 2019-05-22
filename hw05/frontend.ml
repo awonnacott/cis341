@@ -201,6 +201,31 @@ let gensym : string -> string =
 *)
 let size_oat_ty (t : Ast.ty) = 8L
 
+(* Forget the array sizes in an LL type *)
+let rec forget_size = function
+  | Void ->
+      Void
+  | I1 ->
+      I1
+  | I8 ->
+      I8
+  | I64 ->
+      I64
+  | Ptr (Array (_, I8)) ->
+      Ptr I8
+  | Ptr ty ->
+      Ptr (forget_size ty)
+  | Struct fields ->
+      Struct (List.map forget_size fields)
+  | Array (_, I8) ->
+      Ptr I8
+  | Array (_, ty) ->
+      Array (0, forget_size ty)
+  | Fun (args, ret) ->
+      Fun (List.map forget_size args, forget_size ret)
+  | Namedt tid ->
+      Namedt tid
+
 (* Generate code to allocate an array of source type TRef (RArray t) of the
    given size. Note "size" is an operand whose value can be computed at
    runtime *)
@@ -315,8 +340,12 @@ let rec cmp_exp (tc : TypeCtxt.t) (c : Ctxt.t) (exp : Ast.exp node) : Ll.ty * Ll
       | Ptr (Fun _) ->
           (t, op, [])
       | Ptr t ->
+          let ft = forget_size t in
           let ans_id = gensym id in
-          (t, Id ans_id, [I (ans_id, Load (Ptr t, op))])
+          if t = ft then (ft, Id ans_id, [I (ans_id, Load (Ptr t, op))])
+          else
+            let res_id = gensym id in
+            (ft, Id res_id, [I (res_id, Bitcast (t, Id ans_id, ft)); I (ans_id, Load (Ptr t, op))])
       | _ ->
           failwith "broken invariant: identifier not a pointer" )
   (* ARRAY TASK: complete this case to compilet the length(e) expression.
@@ -376,7 +405,11 @@ and cmp_exp_lhs (tc : TypeCtxt.t) (c : Ctxt.t) (e : exp node) : Ll.ty * Ll.opera
   match e.elt with
   | Ast.Id x ->
       let t, op = Ctxt.lookup x c in
-      (t, op, [])
+      let ft = forget_size t in
+      if t = ft then (t, op, [])
+      else
+        let res_id = gensym x in
+        (ft, Id res_id, [I (res_id, Bitcast (t, op, ft))])
   (* STRUCT TASK: Complete this code that emits LL code to compute the
      address of the i'th field from a value of struct type.  Note that
      the actual load from the address to project the value is handled by the
@@ -582,7 +615,19 @@ let cmp_fdecl (tc : TypeCtxt.t) (c : Ctxt.t) (f : Ast.fdecl node)
   let block_code = cmp_block tc c ll_rty body in
   let argtys, f_param = List.split args in
   let f_ty = (argtys, ll_rty) in
-  let f_cfg, globals = cfg_of_stream (args_code >@ block_code) in
+  let return_code =
+    let return_val =
+      match frtyp with
+      | RetVoid ->
+          None
+      | RetVal TBool | RetVal TInt ->
+          Some (Const 0L)
+      | RetVal (TRef _) | RetVal (TNullRef _) ->
+          Some Null
+    in
+    [T (Ret (ll_rty, return_val))]
+  in
+  let f_cfg, globals = cfg_of_stream (args_code >@ block_code >@ return_code) in
   ({f_ty; f_param; f_cfg}, globals)
 
 (* Compile a global initializer, returning the resulting LLVMlite global

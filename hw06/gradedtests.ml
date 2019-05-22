@@ -20,11 +20,11 @@ let exec_ll_ast path ll_ast args extra_files =
   (* Write out the optimized ll file for debugging purposes *)
   let ll_str = Driver.string_of_ll_ast path ll_ast in
   let dot_ll_file = Platform.gen_name output_path "test" ".ll" in
-  let () = write_file dot_ll_file ll_str in
   (* Run the ll backend *)
+  let () = write_file dot_ll_file ll_str in
   let _ = Backend.set_liveness "dataflow" in
-  let _ = Backend.set_regalloc "greedy" in
   (* NOTE: "better" for release! *)
+  let _ = Backend.set_regalloc "better" in
   let asm_ast = Backend.compile_prog ll_ast in
   let asm_str = X86.string_of_prog asm_ast in
   (* Write out the resulting .s file for debugging purposes *)
