@@ -4,7 +4,7 @@ LIBS := unix,str
 CFLAGS := -w,+a-4-26-27-32-33-35-39-40-42-45
 SUBMIT := simulator.ml studenttests.ml
 
-.PHONY: all test clean format
+.PHONY: all test clean format main.native main.byte
 
 all: main.native
 

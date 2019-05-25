@@ -4,7 +4,7 @@ PKGS = num
 CFLAGS := -w,+a-4-26-27-32-33-35-39-40-42-45
 SUBMIT := solver.ml alias.ml backend.ml dce.ml constprop.ml
 
-.PHONY: all test clean format
+.PHONY: all test clean format main.native printanalysis.native
 
 all: main.native
 

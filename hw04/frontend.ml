@@ -18,13 +18,16 @@ open Ast
 *)
 
 type elt =
-  | L of Ll.lbl (* block labels *)
-  | I of uid * Ll.insn (* instruction *)
-  | T of Ll.terminator (* block terminators *)
-  | G of gid * Ll.gdecl (* hoisted globals (usually strings) *)
+  (* block labels *)
+  | L of Ll.lbl
+  (* instruction *)
+  | I of uid * Ll.insn
+  (* block terminators *)
+  | T of Ll.terminator
+  (* hoisted globals (usually strings) *)
+  | G of gid * Ll.gdecl
+  (* hoisted entry block instructions *)
   | E of uid * Ll.insn
-
-(* hoisted entry block instructions *)
 
 type stream = elt list
 
@@ -73,7 +76,7 @@ let cfg_of_stream (code : stream) : Ll.cfg * (Ll.gid * Ll.gdecl) list =
 module Ctxt = struct
   type t = (Ast.id * (Ll.ty * Ll.operand)) list
 
-  let empty = []
+  let empty : t = []
 
   (* Add a binding to the context *)
   let add (c : t) (id : id) (bnd : Ll.ty * Ll.operand) : t = (id, bnd) :: c
@@ -128,7 +131,7 @@ and cmp_rty : Ast.rty -> Ll.ty = function
 
 and cmp_ret_ty : Ast.ret_ty -> Ll.ty = function Ast.RetVoid -> Void | Ast.RetVal t -> cmp_ty t
 
-and cmp_fty (ts, r) : Ll.fty = (List.map cmp_ty ts, cmp_ret_ty r)
+and cmp_fty ((ts, r) : Ast.ty list * Ast.ret_ty) : Ll.fty = (List.map cmp_ty ts, cmp_ret_ty r)
 
 let typ_of_binop : Ast.binop -> Ast.ty * Ast.ty * Ast.ty = function
   | Add | Mul | Sub | Shl | Shr | Sar | IAnd | IOr ->
