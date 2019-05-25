@@ -66,11 +66,12 @@ exception X86lite_segfault
        0x400010 :  InsFrag
 *)
 type sbyte =
-  | InsB0 of ins (* 1st byte of an instruction *)
-  | InsFrag (* 2nd - 7th bytes of an instruction *)
+  (* 1st byte of an instruction *)
+  | InsB0 of ins
+  (* 2nd - 7th bytes of an instruction *)
+  | InsFrag
+  (* non-instruction byte *)
   | Byte of char
-
-(* non-instruction byte *)
 
 (* memory maps addresses to symbolic bytes *)
 type mem = sbyte array
