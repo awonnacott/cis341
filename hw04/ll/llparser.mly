@@ -1,6 +1,9 @@
 (* Author: Steve Zdancewic *)
-%{ open Ll
-   open Llutil.Parsing
+(* Modified by: Andrew Wonncaott *)
+
+%{
+  open Ll
+  open Llutil.Parsing
 
 %}
 
@@ -115,10 +118,14 @@ edecl:
     { (g, t) }
 
 nonptr_ty:
-  | VOID { Void }
-  | I1 { I1 }
-  | I8 { I8 }
-  | I64 { I64 }
+  | VOID
+    { Void }
+  | I1
+    { I1 }
+  | I8
+    { I8 }
+  | I64
+    { I64 }
   | LBRACE ts=ty_list RBRACE
     { Struct ts }
   | LBRACKET i=INT CROSS t=ty RBRACKET
@@ -145,7 +152,8 @@ ty_list:
     { List.rev ts }
 
 arg:
-  | t=ty u=UID { (t,u) }
+  | t=ty u=UID
+    { (t,u) }
 
 arg_list_rev:
   | (* empty *)
@@ -185,7 +193,7 @@ i_operand_list_rev:
   | (* empty *)
     { [] }
   | I64 o=operand
-      { [o] }
+    { [o] }
   | I32 o=operand
     { [o] }
   | os=i_operand_list_rev COMMA I64 o=operand
@@ -229,22 +237,36 @@ entry_block:
 
 bop:
   | OR { Or }
-  | ADD { Add }
-  | SUB { Sub }
-  | MUL { Mul }
-  | SHL { Shl }
-  | XOR { Xor }
-  | AND { And }
-  | LSHR { Lshr }
-  | ASHR { Ashr }
+  | ADD
+    { Add }
+  | SUB
+    { Sub }
+  | MUL
+    { Mul }
+  | SHL
+    { Shl }
+  | XOR
+    { Xor }
+  | AND
+    { And }
+  | LSHR
+    { Lshr }
+  | ASHR
+    { Ashr }
 
 cnd:
-  | EQ { Eq }
-  | NE { Ne }
-  | SLT { Slt }
-  | SLE { Sle }
-  | SGT { Sgt }
-  | SGE { Sge }
+  | EQ
+    { Eq }
+  | NE
+    { Ne }
+  | SLT
+    { Slt }
+  | SLE
+    { Sle }
+  | SGT
+    { Sgt }
+  | SGE
+    { Sge }
 
 insn:
   | u=UID EQUALS b=bop t=ty o1=operand COMMA o2=operand
