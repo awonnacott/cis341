@@ -144,14 +144,14 @@ let rec typecheck_stmt (tc : Tctxt.t) (s : Ast.stmt node) (to_ret : ret_ty) : Tc
  *)
 
 (* Helper function to look for duplicate field names *)
-let rec check_dups fs =
+let rec check_dups (fs : Ast.field list) : bool =
   match fs with
   | [] ->
       false
   | h :: t ->
       List.exists (fun x -> x.fieldName = h.fieldName) t || check_dups t
 
-let typecheck_tdecl (tc : Tctxt.t) id fs (l : 'a Ast.node) : unit =
+let typecheck_tdecl (tc : Tctxt.t) (id : Ast.id) (fs : Ast.field list) (l : 'a Ast.node) : unit =
   if check_dups fs then type_error l ("Repeated fields in " ^ id)
   else List.iter (fun f -> typecheck_ty l tc f.ftyp) fs
 

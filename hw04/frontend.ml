@@ -1,6 +1,4 @@
 (* Modified by: Andrew Wonnacott *)
-open Ll
-open Llutil
 open Ast
 
 (* instruction streams ------------------------------------------------------ *)
@@ -21,13 +19,13 @@ type elt =
   (* block labels *)
   | L of Ll.lbl
   (* instruction *)
-  | I of uid * Ll.insn
+  | I of Ll.uid * Ll.insn
   (* block terminators *)
   | T of Ll.terminator
   (* hoisted globals (usually strings) *)
-  | G of gid * Ll.gdecl
+  | G of Ll.gid * Ll.gdecl
   (* hoisted entry block instructions *)
-  | E of uid * Ll.insn
+  | E of Ll.uid * Ll.insn
 
 type stream = elt list
 
@@ -35,13 +33,18 @@ let ( >@ ) x y = y @ x
 
 let ( >:: ) x y = y :: x
 
-let lift : (uid * insn) list -> stream = List.rev_map (fun (x, i) -> I (x, i))
+let lift : (Ll.uid * Ll.insn) list -> stream = List.rev_map (fun (x, i) -> I (x, i))
 
 (* Build a CFG and collection of global variable definitions from a stream *)
 let cfg_of_stream (code : stream) : Ll.cfg * (Ll.gid * Ll.gdecl) list =
   let gs, einsns, insns, term_opt, blks =
     List.fold_left
-      (fun (gs, einsns, insns, term_opt, blks) e ->
+      (fun ((gs, einsns, insns, term_opt, blks) :
+             (Ll.gid * Ll.gdecl) list
+             * (Ll.uid * Ll.insn) list
+             * (Ll.uid * Ll.insn) list
+             * (string * Ll.terminator) option
+             * (Ll.lbl * Ll.block) list) e ->
         match e with
         | L l -> (
           match term_opt with
@@ -164,10 +167,10 @@ let size_oat_ty (t : Ast.ty) = 8L
 (* Generate code to allocate an array of source type TRef (RArray t) of the
    given size. Note "size" is an operand whose value can be computed at
    runtime *)
-let oat_alloc_array (t : Ast.ty) (size : Ll.operand) : Ll.ty * operand * stream =
+let oat_alloc_array (t : Ast.ty) (size : Ll.operand) : Ll.ty * Ll.operand * stream =
   let ans_id, arr_id = (gensym "array", gensym "raw_array") in
   let ans_ty = cmp_ty @@ TRef (RArray t) in
-  let arr_ty = Ptr I64 in
+  let arr_ty : Ll.ty = Ptr I64 in
   ( ans_ty
   , Id ans_id
   , lift

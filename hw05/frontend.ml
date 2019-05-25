@@ -18,13 +18,16 @@ open Ast
 *)
 
 type elt =
-  | L of Ll.lbl (* block labels *)
-  | I of Ll.uid * Ll.insn (* instruction *)
-  | T of Ll.terminator (* block terminators *)
-  | G of Ll.gid * Ll.gdecl (* hoisted globals (usually strings) *)
+  (* block labels *)
+  | L of Ll.lbl
+  (* instruction *)
+  | I of Ll.uid * Ll.insn
+  (* block terminators *)
+  | T of Ll.terminator
+  (* hoisted globals (usually strings) *)
+  | G of Ll.gid * Ll.gdecl
+  (* hoisted entry block instructions *)
   | E of Ll.uid * Ll.insn
-
-(* hoisted entry block instructions *)
 
 type stream = elt list
 
@@ -36,15 +39,14 @@ let lift : (Ll.uid * Ll.insn) list -> stream = List.rev_map (fun (x, i) -> I (x,
 
 (* Build a CFG and collection of global variable definitions from a stream *)
 let cfg_of_stream (code : stream) : Ll.cfg * (Ll.gid * Ll.gdecl) list =
-  let (gs, einsns, insns, term_opt, blks)
-        : (Ll.gid * Ll.gdecl) list
-          * (Ll.uid * Ll.insn) list
-          * (Ll.uid * Ll.insn) list
-          * (Ll.uid * Ll.terminator) option
-          * (Ll.lbl * Ll.block) list
-    =
+  let gs, einsns, insns, term_opt, blks =
     List.fold_left
-      (fun (gs, einsns, insns, term_opt, blks) e ->
+      (fun ((gs, einsns, insns, term_opt, blks) :
+             (Ll.gid * Ll.gdecl) list
+             * (Ll.uid * Ll.insn) list
+             * (Ll.uid * Ll.insn) list
+             * (Ll.uid * Ll.terminator) option
+             * (Ll.lbl * Ll.block) list) e ->
         match e with
         | L l -> (
           match term_opt with
@@ -52,7 +54,7 @@ let cfg_of_stream (code : stream) : Ll.cfg * (Ll.gid * Ll.gdecl) list =
               if List.length insns = 0 then (gs, einsns, [], None, blks)
               else failwith @@ Printf.sprintf "build_cfg: block labeled %s hasno terminator" l
           | Some term ->
-              (gs, einsns, [], None, ((l, {insns; term}) : Ll.lbl * Ll.block) :: blks) )
+              (gs, einsns, [], None, (l, {insns; term}) :: blks) )
         | T t ->
             (gs, einsns, [], Some (Llutil.Parsing.gensym "tmn", t), blks)
         | I (uid, insn) ->
@@ -79,7 +81,7 @@ let cfg_of_stream (code : stream) : Ll.cfg * (Ll.gid * Ll.gdecl) list =
 module Ctxt = struct
   type t = (Ast.id * (Ll.ty * Ll.operand)) list
 
-  let empty = []
+  let empty : t = []
 
   (* Add a binding to the context *)
   let add (c : t) (id : id) (bnd : Ll.ty * Ll.operand) : t = (id, bnd) :: c
@@ -96,13 +98,13 @@ end
 module TypeCtxt = struct
   type t = (Ast.id * Ast.field list) list
 
-  let empty = []
+  let empty : t = []
 
-  let add c id bnd = (id, bnd) :: c
+  let add (c : t) (id : Ast.id) (bnd : Ast.field list) : t = (id, bnd) :: c
 
-  let lookup id c = List.assoc id c
+  let lookup (id : Ast.id) (c : t) : Ast.field list = List.assoc id c
 
-  let lookup_field st_name f_name (c : t) =
+  let lookup_field (st_name : Ast.id) (f_name : Ast.id) (c : t) : Ast.ty =
     let rec lookup_field_aux f_name l =
       match l with
       | [] ->
@@ -112,13 +114,14 @@ module TypeCtxt = struct
     in
     lookup_field_aux f_name (List.assoc st_name c)
 
-  let rec index_of f l i =
+  let rec index_of (f : Ast.id) (l : Ast.field list) (i : int) : int option =
     match l with [] -> None | h :: t -> if h.fieldName = f then Some i else index_of f t (i + 1)
 
   (* Return the index of a field in the struct. *)
-  let index_of_field_opt st f (c : t) = index_of f (List.assoc st c) 0
+  let index_of_field_opt (st : Ast.id) (f : Ast.id) (c : t) : int option =
+    index_of f (List.assoc st c) 0
 
-  let index_of_field st f c =
+  let index_of_field (st : Ast.id) (f : Ast.id) (c : t) : int =
     match index_of_field_opt st f c with
     | None ->
         failwith "index_of_field: Not found"
@@ -126,7 +129,7 @@ module TypeCtxt = struct
         x
 
   (* Return a pair of base type and index into struct *)
-  let rec lookup_field_name f (c : t) =
+  let rec lookup_field_name (f : Ast.id) (c : t) : Ast.ty * int64 =
     match c with
     | [] ->
         failwith "lookup_field_name: Not found"
@@ -159,15 +162,16 @@ let rec cmp_ty (ct : TypeCtxt.t) : Ast.ty -> Ll.ty = function
   | Ast.TNullRef r ->
       Ptr (cmp_rty ct r)
 
-and cmp_ret_ty ct : Ast.ret_ty -> Ll.ty = function
+and cmp_ret_ty (ct : TypeCtxt.t) : Ast.ret_ty -> Ll.ty = function
   | Ast.RetVoid ->
       Void
   | Ast.RetVal t ->
       cmp_ty ct t
 
-and cmp_fty ct (ts, r) : Ll.fty = (List.map (cmp_ty ct) ts, cmp_ret_ty ct r)
+and cmp_fty (ct : TypeCtxt.t) ((ts, r) : Ast.ty list * Ast.ret_ty) : Ll.fty =
+  (List.map (cmp_ty ct) ts, cmp_ret_ty ct r)
 
-and cmp_rty ct : Ast.rty -> Ll.ty = function
+and cmp_rty (ct : TypeCtxt.t) : Ast.rty -> Ll.ty = function
   | Ast.RString ->
       I8
   | Ast.RArray u ->
@@ -234,7 +238,9 @@ let rec forget_size : Ll.ty -> Ll.ty = function
 (* Generate code to allocate an array of source type TRef (RArray t) of the
    given size. Note "size" is an operand whose value can be computed at
    runtime *)
-let oat_alloc_array ct (t : Ast.ty) (size : Ll.operand) : Ll.ty * Ll.operand * stream =
+let oat_alloc_array (ct : TypeCtxt.t) (t : Ast.ty) (size : Ll.operand)
+    : Ll.ty * Ll.operand * stream
+  =
   let ans_id, arr_id = (gensym "array", gensym "raw_array") in
   let ans_ty = cmp_ty ct @@ TRef (RArray t) in
   let arr_ty : Ll.ty = Ptr I64 in
@@ -252,16 +258,16 @@ let oat_alloc_array ct (t : Ast.ty) (size : Ll.operand) : Ll.ty * Ll.operand * s
 
    - make sure to calculate the correct amount of space to allocate!
 *)
-let oat_alloc_struct ct (id : Ast.id) : Ll.ty * Ll.operand * stream =
+let oat_alloc_struct (ct : TypeCtxt.t) (id : Ast.id) : Ll.ty * Ll.operand * stream =
   failwith "TODO: oat_alloc_struct"
 
-let str_arr_ty s : Ll.ty = Array (1 + String.length s, I8)
+let str_arr_ty (s : string) : Ll.ty = Array (1 + String.length s, I8)
 
-let i1_op_of_bool b = Ll.Const (if b then 1L else 0L)
+let i1_op_of_bool (b : bool) = Ll.Const (if b then 1L else 0L)
 
-let i64_op_of_int i = Ll.Const (Int64.of_int i)
+let i64_op_of_int (i : int) = Ll.Const (Int64.of_int i)
 
-let cmp_binop t (b : Ast.binop) : Ll.operand -> Ll.operand -> Ll.insn =
+let cmp_binop (t : Ll.ty) (b : Ast.binop) : Ll.operand -> Ll.operand -> Ll.insn =
   let ib b op1 op2 = Ll.Binop (b, t, op1, op2) in
   let ic c op1 op2 = Ll.Icmp (c, t, op1, op2) in
   match b with
@@ -638,7 +644,9 @@ let cmp_fdecl (tc : TypeCtxt.t) (c : Ctxt.t) (f : Ast.fdecl node)
 (* Compile a global initializer, returning the resulting LLVMlite global
    declaration, and a list of additional global declarations.
 *)
-let rec cmp_gexp c (tc : TypeCtxt.t) (e : Ast.exp node) : Ll.gdecl * (Ll.gid * Ll.gdecl) list =
+let rec cmp_gexp (c : Ctxt.t) (tc : TypeCtxt.t) (e : Ast.exp node)
+    : Ll.gdecl * (Ll.gid * Ll.gdecl) list
+  =
   match e.elt with
   | CNull r ->
       ((cmp_ty tc (TNullRef r), GNull), [])
