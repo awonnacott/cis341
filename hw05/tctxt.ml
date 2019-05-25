@@ -13,11 +13,12 @@ type struct_ctxt = (Ast.id * Ast.field list) list
 
 (* bundled together *)
 type t =
-  { locals: local_ctxt
-  ; (* Corresponds to the L of the inference rules *)
-    globals: global_ctxt
+  { (* Corresponds to the L of the inference rules *)
+    locals: local_ctxt
   ; (* Corresponds to the G of the inference rules *)
-    structs: struct_ctxt (* Corresponds to the H of the inference rules *) }
+    globals: global_ctxt
+  ; (* Corresponds to the H of the inference rules *)
+    structs: struct_ctxt }
 
 let empty = {locals= []; globals= []; structs= []}
 

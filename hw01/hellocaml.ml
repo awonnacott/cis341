@@ -731,13 +731,16 @@ let rec union (l1 : 'a list) (l2 : 'a list) : 'a list = failwith "union unimplem
 
 (* An object language: a simple datatype of 64-bit integer expressions *)
 type exp =
-  | Var of string (* string representing an object-language variable *)
-  | Const of int64 (* a constant int64 value -- use the 'L' suffix *)
-  | Add of exp * exp (* sum of two expressions *)
-  | Mult of exp * exp (* product of two expressions *)
+  (* string representing an object-language variable *)
+  | Var of string
+  (* a constant int64 value -- use the 'L' suffix *)
+  | Const of int64
+  (* sum of two expressions *)
+  | Add of exp * exp
+  (* product of two expressions *)
+  | Mult of exp * exp
+  (* negation of an expression *)
   | Neg of exp
-
-(* negation of an expression *)
 
 (*
   An object-language arithmetic expression whose concrete (ASCII) syntax is
@@ -938,13 +941,16 @@ let rec optimize (e : exp) : exp = failwith "optimize unimplemented"
   push their results onto the stack.
 *)
 type insn =
-  | IPushC of int64 (* push an int64 constant onto the stack *)
-  | IPushV of string (* push (lookup string ctxt)  onto the stack *)
-  | IMul (* multiply the top two values on the stack *)
-  | IAdd (* add the top two values on the stack *)
+  (* push an int64 constant onto the stack *)
+  | IPushC of int64
+  (* push (lookup string ctxt)  onto the stack *)
+  | IPushV of string
+  (* multiply the top two values on the stack *)
+  | IMul
+  (* add the top two values on the stack *)
+  | IAdd
+  (* negate the top value on the stack *)
   | INeg
-
-(* negate the top value on the stack *)
 
 (* A stack program is just a list of instructions. *)
 type program = insn list

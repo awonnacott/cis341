@@ -9,12 +9,11 @@ open Datastructures
 module SymPtr = struct
   type t =
     (* uid names a pointer that may be aliased *)
-    | MayAlias 
-      (* uid is the unique name for a pointer *)
-    | Unique 
+    | MayAlias
+    (* uid is the unique name for a pointer *)
+    | Unique
     (* uid is not in scope or not a pointer *)
     | UndefAlias
-
 
   let compare : t -> t -> int = Pervasives.compare
 

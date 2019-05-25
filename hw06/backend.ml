@@ -12,12 +12,11 @@ module Alloc = struct
     (* no storage *)
     | LVoid
     (* x86 register *)
-    | LReg of X86.reg 
+    | LReg of X86.reg
     (* a stack slot offset from %rbp (not a byte offset!)*)
-    | LStk of int 
+    | LStk of int
     (* an assembler label *)
     | LLbl of X86.lbl
-
 
   type operand = Null | Const of int64 | Gid of X86.lbl | Loc of loc
 

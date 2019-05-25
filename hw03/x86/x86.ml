@@ -36,13 +36,16 @@ type reg =
   | R15
 
 type operand =
-  | Imm of imm (* immediate *)
-  | Reg of reg (* register *)
-  | Ind1 of imm (* indirect: displacement *)
-  | Ind2 of reg (* indirect: (%reg) *)
+  (* immediate *)
+  | Imm of imm
+  (* register *)
+  | Reg of reg
+  (* indirect: displacement *)
+  | Ind1 of imm
+  (* indirect: (%reg) *)
+  | Ind2 of reg
+  (* indirect: displacement(%reg) *)
   | Ind3 of (imm * reg)
-
-(* indirect: displacement(%reg) *)
 
 (* Condition Codes *)
 type cnd = Eq | Neq | Gt | Ge | Lt | Le
