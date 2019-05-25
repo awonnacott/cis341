@@ -1,4 +1,6 @@
+(* Author: Steve Zdancevic *)
 (* Modified by: Andrew Wonnacott *)
+
 {
 open Lexing
 open Parser
@@ -114,78 +116,105 @@ let digit = ['0'-'9']
 let hexdigit = ['0'-'9'] | ['a'-'f'] | ['A'-'F']
 
 rule token = parse
-  | eof { EOF }
+  | eof
+      { EOF }
 
-  | "/*" { start_lex := start_pos_of_lexbuf lexbuf; comments 0 lexbuf }
-  | '"' { reset_str(); start_lex := start_pos_of_lexbuf lexbuf; string false lexbuf }
-  | '#' { let p = lexeme_start_p lexbuf in
-          if p.pos_cnum - p.pos_bol = 0 then directive 0 lexbuf
-          else raise (Lexer_error (lex_long_range lexbuf,
-                                   Printf.sprintf "# can only be the 1st char in a line.")) }
+  | "/*"
+      { start_lex := start_pos_of_lexbuf lexbuf; comments 0 lexbuf }
+  | '"'
+      { reset_str(); start_lex := start_pos_of_lexbuf lexbuf; string false lexbuf }
+  | '#'
+      { let p = lexeme_start_p lexbuf in
+        if p.pos_cnum - p.pos_bol = 0 then directive 0 lexbuf
+        else raise (Lexer_error (lex_long_range lexbuf,
+                                 Printf.sprintf "# can only be the 1st char in a line.")) }
 
-  | lowercase (digit | character | '_')* { create_token lexbuf }
-  | digit+ | "0x" hexdigit+ { INT (Int64.of_string (lexeme lexbuf)) }
-  | whitespace+ { token lexbuf }
-  | newline { newline lexbuf; token lexbuf }
+  | lowercase (digit | character | '_')*
+      { create_token lexbuf }
+  | digit+ | "0x" hexdigit+
+      { INT (Int64.of_string (lexeme lexbuf)) }
+  | whitespace+
+      { token lexbuf }
+  | newline
+      { newline lexbuf; token lexbuf }
 
   | ';' | ',' | '{' | '}' | '+' | '-' | '*' | '=' | "=="
   | "!=" | '!' | '~' | '(' | ')' | '[' | ']'
-    { create_token lexbuf }
-
-  | _ as c { unexpected_char lexbuf c }
+      { create_token lexbuf }
+  | _ as c
+      { unexpected_char lexbuf c }
 
 and directive state = parse
-  | whitespace+ { directive state lexbuf }
-  | digit+ { if state = 0 then
-               (lnum := int_of_string (lexeme lexbuf);
-                directive 1 lexbuf)
-             else if state = 2 then directive 3 lexbuf
-             else raise (Lexer_error (lex_long_range lexbuf,
-                                      Printf.sprintf "Illegal directives")) }
-  | '"' { if state = 1 then
-            begin
-              reset_str();
-              start_lex := start_pos_of_lexbuf lexbuf;
-              string true lexbuf
-            end
-          else raise (Lexer_error (lex_long_range lexbuf,
-                                   Printf.sprintf "Illegal directives"))
-        }
-  | newline { if state = 2 || state = 3 then
-                begin
-                  reset_lexbuf (get_str()) !lnum lexbuf;
-                  token lexbuf
-                end
-              else raise (Lexer_error (lex_long_range lexbuf,
-                                       Printf.sprintf "Illegal directives")) }
-  | _ { raise (Lexer_error (lex_long_range lexbuf,
+  | whitespace+
+      { directive state lexbuf }
+  | digit+
+      { if state = 0 then
+          (lnum := int_of_string (lexeme lexbuf);
+           directive 1 lexbuf)
+        else if state = 2 then directive 3 lexbuf
+        else raise (Lexer_error (lex_long_range lexbuf,
+                                 Printf.sprintf "Illegal directives")) }
+  | '"'
+      { if state = 1 then
+          begin
+            reset_str();
+            start_lex := start_pos_of_lexbuf lexbuf;
+            string true lexbuf
+          end
+        else raise (Lexer_error (lex_long_range lexbuf,
+                                 Printf.sprintf "Illegal directives")) }
+  | newline
+      { if state = 2 || state = 3 then
+          begin
+            reset_lexbuf (get_str()) !lnum lexbuf;
+            token lexbuf
+          end
+        else raise (Lexer_error (lex_long_range lexbuf,
+                                 Printf.sprintf "Illegal directives")) }
+  | _
+      { raise (Lexer_error (lex_long_range lexbuf,
                             Printf.sprintf "Illegal directives")) }
 
 and comments level = parse
-  | "*/" { if level = 0 then token lexbuf
-           else comments (level-1) lexbuf }
-  | "/*" { comments (level+1) lexbuf}
-  | [^ '\n'] { comments level lexbuf }
-  | "\n" { newline lexbuf; comments level lexbuf }
-  | eof  { raise (Lexer_error (lex_long_range lexbuf,
-                               Printf.sprintf "comments are not closed")) }
+  | "*/"
+      { if level = 0 then token lexbuf
+        else comments (level-1) lexbuf }
+  | "/*"
+      { comments (level+1) lexbuf }
+  | [^ '\n']
+      { comments level lexbuf }
+  | "\n"
+      { newline lexbuf; comments level lexbuf }
+  | eof
+      { raise (Lexer_error (lex_long_range lexbuf,
+                            Printf.sprintf "comments are not closed")) }
 
 and string in_directive = parse
-  | '"'  { if in_directive = false then
-             STRING (get_str())
-           else directive 2 lexbuf }
-  | '\\' { add_str(escaped lexbuf); string in_directive lexbuf }
-  | '\n' { add_str '\n'; newline lexbuf; string in_directive lexbuf }
-  | eof  { raise (Lexer_error (lex_long_range lexbuf,
-                               Printf.sprintf "String is not terminated")) }
-  | _    { add_str (Lexing.lexeme_char lexbuf 0); string in_directive lexbuf }
+  | '"'
+      { if in_directive = false then
+          STRING (get_str())
+        else directive 2 lexbuf }
+  | '\\'
+      { add_str(escaped lexbuf); string in_directive lexbuf }
+  | '\n'
+      { add_str '\n'; newline lexbuf; string in_directive lexbuf }
+  | eof
+      { raise (Lexer_error (lex_long_range lexbuf,
+                            Printf.sprintf "String is not terminated")) }
+  | _
+      { add_str (Lexing.lexeme_char lexbuf 0); string in_directive lexbuf }
 
 and escaped = parse
-  | 'n'    { '\n' }
-  | 't'    { '\t' }
-  | '\\'   { '\\' }
-  | '"'    { '\034'  }
-  | '\''   { '\'' }
+  | 'n'
+      { '\n' }
+  | 't'
+      { '\t' }
+  | '\\'
+      { '\\' }
+  | '"'
+      { '\034' }
+  | '\''
+      { '\'' }
   | ['0'-'9']['0'-'9']['0'-'9']
       {
         let x = int_of_string(lexeme lexbuf) in
@@ -193,9 +222,7 @@ and escaped = parse
           raise (Lexer_error (lex_long_range lexbuf,
                               (Printf.sprintf "%s is an illegal escaped character constant" (lexeme lexbuf))))
         else
-          Char.chr x
-      }
+          Char.chr x }
   | [^ '"' '\\' 't' 'n' '\'']
       { raise (Lexer_error (lex_long_range lexbuf,
                             (Printf.sprintf "%s is an illegal escaped character constant" (lexeme lexbuf) ))) }
-
