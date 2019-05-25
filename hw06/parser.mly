@@ -1,8 +1,11 @@
-%{
-open Ast
+(* Author: Steve Zdancevic *)
+(* Modified by: Andrew Wonnacott *)
 
-let loc (startpos:Lexing.position) (endpos:Lexing.position) (elt:'a) : 'a node =
-  { elt ; loc=Range.mk_lex_range startpos endpos }
+%{
+  open Ast
+
+  let loc (startpos:Lexing.position) (endpos:Lexing.position) (elt:'a) : 'a node =
+    { elt ; loc=Range.mk_lex_range startpos endpos }
 
 %}
 
@@ -95,13 +98,16 @@ let loc (startpos:Lexing.position) (endpos:Lexing.position) (elt:'a) : 'a node =
 %%
 
 exp_top:
-  | e=exp EOF { e }
+  | e=exp EOF
+    { e }
 
 stmt_top:
-  | s=stmt EOF { s }
+  | s=stmt EOF
+    { s }
 
 prog:
-  | p=list(decl) EOF  { p }
+  | p=list(decl) EOF
+    { p }
 
 decl:
   | GLOBAL name=IDENT EQ init=gexp SEMI
@@ -112,120 +118,180 @@ decl:
     { Gtdecl (loc $startpos $endpos (name, fs)) }
 
 decl_field:
-  | t=ty id=IDENT { { fieldName=id; ftyp=t } }
+  | t=ty id=IDENT
+    { { fieldName=id; ftyp=t } }
 
 arglist:
-  | l=separated_list(COMMA, pair(ty,IDENT)) { l }
+  | l=separated_list(COMMA, pair(ty,IDENT))
+    { l }
 
 ty:
-  | TINT   { TInt }
-  | r=rtyp { TRef r } %prec LOW
-  | r=rtyp QUESTION { TNullRef r }
-  | LPAREN t=ty RPAREN { t }
-  | TBOOL  { TBool }
+  | TINT
+    { TInt }
+  | r=rtyp
+    { TRef r } %prec LOW
+  | r=rtyp QUESTION
+    { TNullRef r }
+  | LPAREN t=ty RPAREN
+    { t }
+  | TBOOL
+    { TBool }
 
 %inline ret_ty:
-  | TVOID  { RetVoid }
-  | t=ty   { RetVal t }
+  | TVOID
+    { RetVoid }
+  | t=ty
+    { RetVal t }
 
 %inline rtyp:
-  | TSTRING { RString }
-  | t=ty LBRACKET RBRACKET { RArray t }
-  | id=UIDENT { RStruct id }
-  | LPAREN RPAREN ARROW ret=ret_ty { RFun ([], ret) }
-  | LPAREN t=ty RPAREN ARROW ret=ret_ty { RFun ([t], ret) }
+  | TSTRING
+    { RString }
+  | t=ty LBRACKET RBRACKET
+    { RArray t }
+  | id=UIDENT
+    { RStruct id }
+  | LPAREN RPAREN ARROW ret=ret_ty
+    { RFun ([], ret) }
+  | LPAREN t=ty RPAREN ARROW ret=ret_ty
+    { RFun ([t], ret) }
   | LPAREN t=ty COMMA l=separated_list(COMMA, ty) RPAREN ARROW ret=ret_ty
-       { RFun (t :: l, ret) }
+    { RFun (t :: l, ret) }
 
 %inline bop:
-  | PLUS   { Add }
-  | DASH   { Sub }
-  | STAR   { Mul }
-  | EQEQ   { Eq }
-  | BANGEQ { Neq }
-  | LT     { Lt }
-  | LTEQ   { Lte }
-  | GT     { Gt }
-  | GTEQ   { Gte }
-  | AMPER  { And }
-  | BAR    { Or }
-  | IAND   { IAnd }
-  | IOR    { IOr }
-  | LTLT   { Shl }
-  | GTGT   { Shr }
-  | GTGTGT { Sar }
+  | PLUS
+    { Add }
+  | DASH
+    { Sub }
+  | STAR
+    { Mul }
+  | EQEQ
+    { Eq }
+  | BANGEQ
+    { Neq }
+  | LT
+    { Lt }
+  | LTEQ
+    { Lte }
+  | GT
+    { Gt }
+  | GTEQ
+    { Gte }
+  | AMPER
+    { And }
+  | BAR
+    { Or }
+  | IAND
+    { IAnd }
+  | IOR
+    { IOr }
+  | LTLT
+    { Shl }
+  | GTGT
+    { Shr }
+  | GTGTGT
+    { Sar }
 
 %inline uop:
-  | DASH  { Neg }
-  | BANG  { Lognot }
-  | TILDE { Bitnot }
+  | DASH
+    { Neg }
+  | BANG
+    { Lognot }
+  | TILDE
+    { Bitnot }
 
 gexp:
-  | r=rtyp NULL{ loc $startpos $endpos @@ CNull r }
-  | TRUE       { loc $startpos $endpos @@ CBool true }
-  | FALSE      { loc $startpos $endpos @@ CBool false }
-  | i=INT      { loc $startpos $endpos @@ CInt i }
-  | s=STRING   { loc $startpos $endpos @@ CStr s }
+  | r=rtyp NULL
+    { loc $startpos $endpos @@ CNull r }
+  | TRUE
+    { loc $startpos $endpos @@ CBool true }
+  | FALSE
+    { loc $startpos $endpos @@ CBool false }
+  | i=INT
+    { loc $startpos $endpos @@ CInt i }
+  | s=STRING
+    { loc $startpos $endpos @@ CStr s }
   | NEW t=ty LBRACKET RBRACKET LBRACE cs=separated_list(COMMA, gexp) RBRACE
-               { loc $startpos $endpos @@ CArr (t, cs) }
+    { loc $startpos $endpos @@ CArr (t, cs) }
   | NEW i=UIDENT LBRACE fs=separated_list(SEMI, gfield) RBRACE
-               { loc $startpos $endpos @@ CStruct (i, fs) }
-  | id=IDENT {loc $startpos $endpos @@ Id id }
+    { loc $startpos $endpos @@ CStruct (i, fs) }
+  | id=IDENT
+    {loc $startpos $endpos @@ Id id }
 
 gfield:
-  | id=IDENT EQ e=gexp { (id, e) }
+  | id=IDENT EQ e=gexp
+    { (id, e) }
 
 lhs:
-  | id=IDENT            { loc $startpos $endpos @@ Id id }
+  | id=IDENT
+    { loc $startpos $endpos @@ Id id }
   | e=exp LBRACKET i=exp RBRACKET
-                        { loc $startpos $endpos @@ Index (e, i) }
-  | e=exp DOT id=IDENT  { loc $startpos $endpos @@ Proj (e, id) }
+    { loc $startpos $endpos @@ Index (e, i) }
+  | e=exp DOT id=IDENT
+    { loc $startpos $endpos @@ Proj (e, id) }
 
 exp:
-  | r=rtyp NULL         { loc $startpos $endpos @@ CNull r }
-  | TRUE                { loc $startpos $endpos @@ CBool true }
-  | FALSE               { loc $startpos $endpos @@ CBool false }
-  | i=INT               { loc $startpos $endpos @@ CInt i }
-  | s=STRING            { loc $startpos $endpos @@ CStr s }
+  | r=rtyp NULL
+    { loc $startpos $endpos @@ CNull r }
+  | TRUE
+    { loc $startpos $endpos @@ CBool true }
+  | FALSE
+    { loc $startpos $endpos @@ CBool false }
+  | i=INT
+    { loc $startpos $endpos @@ CInt i }
+  | s=STRING
+    { loc $startpos $endpos @@ CStr s }
   | NEW t=ty LBRACKET RBRACKET LBRACE cs=separated_list(COMMA, exp) RBRACE
-                        { loc $startpos $endpos @@ CArr (t, cs) }
+    { loc $startpos $endpos @@ CArr (t, cs) }
   | NEW t=UIDENT LBRACE cs=separated_list(SEMI, field) RBRACE
-                        { loc $startpos $endpos @@ CStruct(t, cs) }
-  | e=exp DOT id=IDENT  { loc $startpos $endpos @@ Proj(e, id) }
+    { loc $startpos $endpos @@ CStruct(t, cs) }
+  | e=exp DOT id=IDENT
+    { loc $startpos $endpos @@ Proj(e, id) }
   | NEW t=ty LBRACKET e1=exp RBRACKET LBRACE u=IDENT ARROW e2=exp RBRACE
-                        { loc $startpos $endpos @@ NewArr(t, e1, u, e2) }
-  | id=IDENT            { loc $startpos $endpos @@ Id id }
+    { loc $startpos $endpos @@ NewArr(t, e1, u, e2) }
+  | id=IDENT
+    { loc $startpos $endpos @@ Id id }
   | e=exp LBRACKET i=exp RBRACKET
-                        { loc $startpos $endpos @@ Index (e, i) }
+    { loc $startpos $endpos @@ Index (e, i) }
   | e=exp LPAREN es=separated_list(COMMA, exp) RPAREN
-                        { loc $startpos $endpos @@ Call (e,es) }
-  | e1=exp b=bop e2=exp { loc $startpos $endpos @@ Bop (b, e1, e2) }
-  | u=uop e=exp         { loc $startpos $endpos @@ Uop (u, e) }
+    { loc $startpos $endpos @@ Call (e,es) }
+  | e1=exp b=bop e2=exp
+    { loc $startpos $endpos @@ Bop (b, e1, e2) }
+  | u=uop e=exp
+    { loc $startpos $endpos @@ Uop (u, e) }
   | LENGTH LPAREN e=exp RPAREN
-                        { loc $startpos $endpos @@ Length(e) }
-  | LPAREN e=exp RPAREN { e }
+    { loc $startpos $endpos @@ Length(e) }
+  | LPAREN e=exp RPAREN
+    { e }
 
 field:
-  | id=IDENT EQ e=exp { (id, e) }
+  | id=IDENT EQ e=exp
+    { (id, e) }
 
 vdecl:
-  | VAR id=IDENT EQ init=exp { (id, init) }
+  | VAR id=IDENT EQ init=exp
+    { (id, init) }
 
 stmt:
-  | d=vdecl SEMI        { loc $startpos $endpos @@ Decl(d) }
-  | p=lhs EQ e=exp SEMI { loc $startpos $endpos @@ Assn(p,e) }
+  | d=vdecl SEMI
+    { loc $startpos $endpos @@ Decl(d) }
+  | p=lhs EQ e=exp SEMI
+    { loc $startpos $endpos @@ Assn(p,e) }
   | e=exp LPAREN es=separated_list(COMMA, exp) RPAREN SEMI
-                        { loc $startpos $endpos @@ SCall (e, es) }
-  | ifs=if_stmt         { ifs }
-  | RETURN SEMI         { loc $startpos $endpos @@ Ret(None) }
-  | RETURN e=exp SEMI   { loc $startpos $endpos @@ Ret(Some e) }
+    { loc $startpos $endpos @@ SCall (e, es) }
+  | ifs=if_stmt
+    { ifs }
+  | RETURN SEMI
+    { loc $startpos $endpos @@ Ret(None) }
+  | RETURN e=exp SEMI
+    { loc $startpos $endpos @@ Ret(Some e) }
   | WHILE LPAREN e=exp RPAREN b=block
-                        { loc $startpos $endpos @@ While(e, b) }
+    { loc $startpos $endpos @@ While(e, b) }
   | FOR LPAREN ds=separated_list(COMMA, vdecl) SEMI e=exp? SEMI s=stmt? RPAREN b=block
-                        { loc $startpos $endpos @@ For(ds,e,s,b) }
+    { loc $startpos $endpos @@ For(ds,e,s,b) }
 
 block:
-  | LBRACE stmts=list(stmt) RBRACE { stmts }
+  | LBRACE stmts=list(stmt) RBRACE
+    { stmts }
 
 if_stmt:
   | IF LPAREN e=exp RPAREN b1=block b2=else_stmt
@@ -234,6 +300,9 @@ if_stmt:
     { loc $startpos $endpos @@ Cast(r, id, e, b1, b2) }
 
 else_stmt:
-  | (* empty *)       { [] }
-  | ELSE b=block      { b }
-  | ELSE ifs=if_stmt  { [ ifs ] }
+  | (* empty *)
+    { [] }
+  | ELSE b=block
+    { b }
+  | ELSE ifs=if_stmt
+    { [ ifs ] }
