@@ -9,12 +9,15 @@ open X86
 module Alloc = struct
   (* X86 locations *)
   type loc =
-    | LVoid (* no storage *)
-    | LReg of X86.reg (* x86 register *)
-    | LStk of int (* a stack slot offset from %rbp (not a byte offset!)*)
+    (* no storage *)
+    | LVoid
+    (* x86 register *)
+    | LReg of X86.reg 
+    (* a stack slot offset from %rbp (not a byte offset!)*)
+    | LStk of int 
+    (* an assembler label *)
     | LLbl of X86.lbl
 
-  (* an assembler label *)
 
   type operand = Null | Const of int64 | Gid of X86.lbl | Loc of loc
 

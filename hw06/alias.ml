@@ -1,4 +1,5 @@
 (* Author: Steve Zdancewic *)
+(* Modified by: Andrew Wonnacott *)
 (** Alias Analysis *)
 
 open Ll
@@ -7,15 +8,17 @@ open Datastructures
 (* The lattice of abstract pointers ----------------------------------------- *)
 module SymPtr = struct
   type t =
-    | MayAlias (* uid names a pointer that may be aliased *)
-    | Unique (* uid is the unique name for a pointer *)
+    (* uid names a pointer that may be aliased *)
+    | MayAlias 
+      (* uid is the unique name for a pointer *)
+    | Unique 
+    (* uid is not in scope or not a pointer *)
     | UndefAlias
 
-  (* uid is not in scope or not a pointer *)
 
   let compare : t -> t -> int = Pervasives.compare
 
-  let to_string = function
+  let to_string : t -> string = function
     | MayAlias ->
         "MayAlias"
     | Unique ->
@@ -42,7 +45,7 @@ type fact = SymPtr.t UidM.t
 let insn_flow ((u, i) : uid * insn) (d : fact) : fact = failwith "Alias.insn_flow unimplemented"
 
 (* The flow function across terminators is trivial: they never change alias info *)
-let terminator_flow t (d : fact) : fact = d
+let terminator_flow (t : terminator) (d : fact) : fact = d
 
 (* module for instantiating the generic framework --------------------------- *)
 module Fact = struct

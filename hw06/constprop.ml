@@ -1,17 +1,18 @@
 (* Modified by: Andrew Wonnacott *)
 open Ll
-open Llinterp (* You can use e.g. interp_bop and interp_cnd *)
+open Llinterp (* You might want to use e.g. interp_bop and interp_cnd *)
 
 open Datastructures
 
 (* The lattice of symbolic constants ---------------------------------------- *)
 module SymConst = struct
   type t =
-    | NonConst (* Uid may take on multiple values at runtime *)
-    | Const of int64 (* Uid will always evaluate to const i64 or i1 *)
+    (* Uid may take on multiple values at runtime *)
+    | NonConst
+    (* Uid will always evaluate to const i64 or i1 *)
+    | Const of int64
+    (* Uid is not defined at the point *)
     | UndefConst
-
-  (* Uid is not defined at the point *)
 
   let compare (s : t) (t : t) : int =
     match (s, t) with
@@ -93,8 +94,8 @@ let analyze (g : Cfg.t) : Graph.t =
 let run (cg : Graph.t) (cfg : Cfg.t) : Cfg.t =
   let open SymConst in
   let cp_block (l : Ll.lbl) (cfg : Cfg.t) : Cfg.t =
-    let b = Cfg.block cfg l in
-    let cb = Graph.uid_out cg l in
+    let b : Ll.block = Cfg.block cfg l in
+    let cb : Ll.uid -> fact = Graph.uid_out cg l in
     failwith "Constprop.cp_block unimplemented"
   in
   LblS.fold cp_block (Cfg.nodes cfg) cfg

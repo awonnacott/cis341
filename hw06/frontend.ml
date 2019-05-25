@@ -18,13 +18,17 @@ open Ast
 *)
 
 type elt =
-  | L of Ll.lbl (* block labels *)
-  | I of uid * Ll.insn (* instruction *)
-  | T of Ll.terminator (* block terminators *)
-  | G of gid * Ll.gdecl (* hoisted globals (usually strings) *)
+  (* block labels *)
+  | L of Ll.lbl 
+  (* instruction *)
+  | I of uid * Ll.insn 
+                 (* block terminators *)
+  | T of Ll.terminator 
+           (* hoisted globals (usually strings) *)
+  | G of gid * Ll.gdecl 
+  (* hoisted entry block instructions *)
   | E of uid * Ll.insn
 
-(* hoisted entry block instructions *)
 
 type stream = elt list
 
