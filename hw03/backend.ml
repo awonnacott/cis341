@@ -88,7 +88,7 @@ let lookup m x = List.assoc x m
    the X86 instruction that moves an LLVM operand into a designated
    destination (usually a register).
 *)
-let compile_operand ctxt dest : Ll.operand -> X86.ins = function
+let compile_operand ctxt (dest : X86.operand) : Ll.operand -> X86.ins = function
   | _ ->
       failwith "compile_operand unimplemented"
 
@@ -134,7 +134,8 @@ let compile_operand ctxt dest : Ll.operand -> X86.ins = function
    - Void, i8, and functions have undefined sizes according to LLVMlite.
      Your function should simply return 0 in those cases
 *)
-let rec size_ty tdecls t : int = failwith "size_ty not implemented"
+let rec size_ty (tdecls : Ll.tid * Ll.ty list) (t : Ll.ty) : int =
+  failwith "size_ty not implemented"
 
 (* Generates code that computes a pointer value.
 
@@ -187,7 +188,8 @@ let compile_gep ctxt (op : Ll.ty * Ll.operand) (path : Ll.operand list) : X86.in
 
    - Bitcast: does nothing interesting at the assembly level
 *)
-let compile_insn ctxt (uid, i) : X86.ins list = failwith "compile_insn not implemented"
+let compile_insn ctxt ((uid, i) : Ll.uid * Ll.insn) : X86.ins list =
+  failwith "compile_insn not implemented"
 
 (* compiling terminators  --------------------------------------------------- *)
 
@@ -201,12 +203,13 @@ let compile_insn ctxt (uid, i) : X86.ins list = failwith "compile_insn not imple
 
    - Cbr branch should treat its operand as a boolean conditional
 *)
-let compile_terminator ctxt t = failwith "compile_terminator not implemented"
+let compile_terminator ctxt (t : Ll.terminator) : X86.ins list =
+  failwith "compile_terminator not implemented"
 
 (* compiling blocks --------------------------------------------------------- *)
 
 (* We have left this helper function here for you to complete. *)
-let compile_block ctxt blk : X86.ins list = failwith "compile_block not implemented"
+let compile_block ctxt (blk : Ll.block) : X86.ins list = failwith "compile_block not implemented"
 
 let compile_lbl_block lbl ctxt blk : X86.elem = X86.Asm.text lbl (compile_block ctxt blk)
 
@@ -230,7 +233,8 @@ let arg_loc (n : int) : Ll.operand = failwith "arg_loc not implemented"
    - see the discusion about locals
 
 *)
-let stack_layout args (block, lbled_blocks) : layout = failwith "stack_layout not implemented"
+let stack_layout (args : Ll.uid list) ((entry_block, lbled_blocks) : Ll.cfg) : layout =
+  failwith "stack_layout not implemented"
 
 (* The code for the entry-point of a function must do several things:
 
@@ -248,7 +252,9 @@ let stack_layout args (block, lbled_blocks) : layout = failwith "stack_layout no
    - the function entry code should allocate the stack storage needed
      to hold all of the local stack slots.
 *)
-let compile_fdecl tdecls name ({f_ty; f_param; f_cfg} : Ll.fdecl) =
+let compile_fdecl (tdecls : (Ll.tid * Ll.ty) list) (name : Ll.gid)
+    ({f_ty; f_param; f_cfg} : Ll.fdecl)
+  =
   failwith "compile_fdecl unimplemented"
 
 (* compile_gdecl ------------------------------------------------------------ *)
