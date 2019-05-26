@@ -129,16 +129,16 @@ module TypeCtxt = struct
         x
 
   (* Return a pair of base type and index into struct *)
-  let rec lookup_field_name (f : Ast.id) (c : t) : Ast.ty * int64 =
+  let rec lookup_field_name (st : Ast.id) (f : Ast.id) (c : t) : Ast.ty * int64 =
     match c with
     | [] ->
         failwith "lookup_field_name: Not found"
     | (id, field) :: t -> (
-      match index_of f field 0 with
-      | None ->
-          lookup_field_name f t
-      | Some x ->
-          (List.(nth field x).ftyp, Int64.of_int x) )
+      match (id = st, index_of f field 0) with
+      | true, Some x ->
+          (List.(nth field x).ftyp, Int64.of_int x)
+      | _ ->
+          lookup_field_name st f t )
 end
 
 (* compiling OAT types ------------------------------------------------------ *)
